@@ -1565,9 +1565,6 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     qDebug() << "rightValue = " << rightValue;
     qDebug() << "FWHM = " << FWHM;
 
-    qDebug() << Qt::endl;
-
-
     // 计算能量分辨率
     float totalER = 100.0 * FWHM / peakLocValue;
 
