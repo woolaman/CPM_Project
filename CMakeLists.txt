@@ -25,6 +25,18 @@ set(PROJECT_SOURCES
     eHistLabel.cpp
     floodmapLabel.h
     floodmapLabel.cpp
+    histogram.h
+    histogram.cpp
+    floodmap.h
+    floodmap.cpp
+    crystal.h
+    crystal.cpp
+    block.h
+    block.cpp
+    module.h
+    module.cpp
+    petRing.h
+    petRing.cpp
 )
 
 qt_add_executable(CPM
