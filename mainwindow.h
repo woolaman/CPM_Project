@@ -10,7 +10,7 @@
 
 //#include "opencv2/opencv.hpp"
 #include "opencv2/core/mat.hpp"
-#include "opencv2/highgui/highgui.hpp"
+//#include "opencv2/highgui/highgui.hpp"
 
 
 QT_BEGIN_NAMESPACE
@@ -26,34 +26,41 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    template<typename T>
-    QVector<float> movingAverage(const QVector<T>& data,
-                                  int windowSize=5);
-
-public:
     const int nCM = 1;
     const int nBK = 1;
     const int nPixel = 512;
     const int nCrystal = 14; // 26
     const int num1 = 7; // nCrystal = num1 * num2
     const int num2 = 2;
+    const int crystalNum = nCrystal*nCrystal;
+
+    const float factor = 1.06f; // 调整点阵大小
+    const int bias = 58;  // 调整点阵位置
 
     const int xmin = 126;  // choose central area to analysis
     const int xmax = 383;
     const int ymin = 132;
     const int ymax = 383;
+    //const int xmin = 0;  // choose central area to analysis
+    //const int xmax = 512;
+    //const int ymin = 0;
+    //const int ymax = 512;
 
     const float EW_width = 0.25;
 
     const int minADC = 0;
     const int maxADC = 60000; // ADC channel value
-    const int ADC_nBins = 1000;
-    const float ADC_binWidth = 1.0*(maxADC-minADC)/ADC_nBins;
+    const int ADC_nBins = 600;
+    const int ADC_binWidth = (maxADC-minADC)/ADC_nBins;
+    const int ADC_cutValue = 15000;
+    //将小于该值的bin置为0，防止寻峰错误
 
     const int minRecE = 0;
     const int maxRecE = 1600; // keV
     const int recE_nBins = 400;
-    const float recE_binWidth = 1.0*(maxRecE-minRecE)/recE_nBins;
+    const int recE_binWidth = (maxRecE-minRecE)/recE_nBins;
+    const int recE_cutValue = 200;
+    //将小于该值的bin置为0，防止寻峰错误
 
     cv::Mat GetColorMap(cv::Mat_<float> I);
     void ShowImage(cv::Mat_<float> I);
@@ -66,6 +73,10 @@ public:
     QVector<int> FindPeaks(QVector<float> v, int nPeaks);
 
     void LogOut(QString str);
+
+    template<typename T>
+    QVector<float> Smooth(const QVector<T>& data, int window=10);
+
 
 private slots:
     void on_pushButton_readinData_clicked();

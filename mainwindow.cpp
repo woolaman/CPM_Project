@@ -22,11 +22,15 @@ MainWindow::MainWindow(QWidget *parent)
 {
     // 创建或打开日志文件（若不存在则会自动创建）
     logFile = new QFile("log.txt");
-    if (!logFile->open(QIODevice::WriteOnly))
+    if (logFile->open(QIODevice::WriteOnly))
     {
-        LogOut("无法打开日志文件");
+        logOutStream = new QTextStream(logFile);
     }
-    logOutStream = new QTextStream(logFile);
+    else
+    {
+        qDebug() << "无法打开日志文件";
+    }
+
     LogOut("程序初始化开始...");
 
     ui->setupUi(this);
@@ -51,10 +55,6 @@ MainWindow::MainWindow(QWidget *parent)
         {
             qDebug() << "Failed to create directory:" << targetDirectoryPath;
         }
-    }
-    else
-    {
-        // qDebug() << "Directory already exists:" << targetDirectoryPath;
     }
 
     fName_LUT_P = currentPath + fName_LUT_P;
@@ -108,11 +108,11 @@ MainWindow::MainWindow(QWidget *parent)
     chart->legend()->setVisible(false);
 
     axisX->setRange(0, maxADC);
-    axisX->setTickCount(5);
+    axisX->setTickCount(maxADC/10000+1);
     axisX->setLabelFormat("%d");
 
     axisY->setRange(0, 100);
-    axisY->setTickCount(5);
+    axisY->setTickCount(5+1);
     axisY->setLabelFormat("%d");
 
     chart->addAxis(axisY, Qt::AlignLeft);
@@ -140,9 +140,9 @@ MainWindow::MainWindow(QWidget *parent)
     pt = cv::Mat_(nCrystal, nCrystal, cv::Vec2w(0, 0));
     ShowImage(I0);
 
-    m_eHists = QVector< QVector<quint16> >(nCrystal*nCrystal,
+    m_eHists = QVector< QVector<quint16> >(crystalNum,
                                           QVector<quint16>(ADC_nBins, 0));
-    m_peaks = QVector<quint16>(nCrystal*nCrystal, 0);
+    m_peaks = QVector<quint16>(crystalNum, 0);
 
     LogOut("初始化完成。");
 }
@@ -264,84 +264,80 @@ QVector<int> MainWindow::FindPeaks(QVector<float> v, int nPeaks)
 void MainWindow::on_pushButton_readinData_clicked()
 {
     LogOut("开始读入数据...");
+
     QString fName = ui->lineEdit_dataPath->text();
     fName.replace("\\", "/");
-    QFile file(fName);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    QFile infile(fName);
+    if (infile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream in(&infile);
+
+        // 获取文件大小，用于计算进度
+        quint64 fileSize = infile.size();
+
+        ui->progressBar_readinData->setMinimum(0);
+        ui->progressBar_readinData->setMaximum(fileSize);
+        ui->progressBar_readinData->setValue(0);
+
+        m_xList.clear();
+        m_yList.clear();
+        m_eList.clear();
+
+        while (!in.atEnd())
+        {
+            QString line = in.readLine();
+            QStringList numbers = line.split(" ", Qt::SkipEmptyParts);
+
+            if(3==numbers.size())
+            {
+                int x = numbers[0].toInt();
+                int y = numbers[1].toInt();
+                int e = numbers[2].toInt();
+
+                quint16 xx = std::round(factor*x/e*nPixel) - bias;
+                quint16 yy = std::round(factor*y/e*nPixel) - bias;
+
+                if(0<xx && xx<nPixel && 0<yy && yy<nPixel && 0<e && e<maxADC)
+                {
+                    m_xList.append(xx);
+                    m_yList.append(yy);
+                    m_eList.append(e);
+                }
+            }
+            else
+            {
+                LogOut("numbers size is not 3, data file is broken!");
+                continue;
+            }
+
+            ui->progressBar_readinData->setValue(infile.pos()); // 更新进度条
+        }
+        infile.close();
+    }
+    else
     {
         LogOut("文件打开失败，请检查文件是否存在。");
         return;
     }
 
-    QTextStream in(&file);
-
-    // 获取文件大小，用于计算进度
-    quint64 fileSize = file.size();
-
-    ui->progressBar_readinData->setMinimum(0);
-    ui->progressBar_readinData->setMaximum(fileSize);
-    ui->progressBar_readinData->setValue(0);
-
-    m_xList.clear();
-    m_yList.clear();
-    m_eList.clear();
-
-    double factor = 1.06;  // 调整点阵大小
-    int bias = 58;        // 调整点阵位置
-
-    while (!in.atEnd())
-    {
-        QString line = in.readLine();
-        QStringList numbers = line.split(" ", Qt::SkipEmptyParts);
-
-        if(3==numbers.size())
-        {
-            int x = numbers[0].toInt();
-            int y = numbers[1].toInt();
-            int e = numbers[2].toInt();
-
-            quint16 xx = std::round(factor*x/e*nPixel) - bias;
-            quint16 yy = std::round(factor*y/e*nPixel) - bias;
-
-            if(0<xx && xx<nPixel && 0<yy && yy<nPixel && 0<e && e<maxADC)
-            {
-                m_xList.append(xx);
-                m_yList.append(yy);
-                m_eList.append(e);
-            }
-        }
-        else
-        {
-            LogOut("numbers size is not 3, data file is broken!");
-        }
-
-        ui->progressBar_readinData->setValue(file.pos()); // 更新进度条
-    }
-    file.close();
-
     // 保存数据
-    for (int iCM = 0; iCM < nCM; ++iCM)
+    fName = currentPath + "Data/data_CM0_BK0.bin";
+    QFile ofile(fName);
+    if (ofile.open(QIODevice::WriteOnly))
     {
-        for (int iBK = 0; iBK < nBK; ++iBK)
+        QDataStream out(&ofile);
+        for (int i = 0; i < m_eList.size(); ++i)
         {
-            QString fName = currentPath + "Data/data_CM" + QString::number(iCM) +
-                                  "_BK" + QString::number(iBK) + ".bin";
-            QFile file(fName);
-            if (!file.open(QIODevice::WriteOnly))
-            {
-                LogOut("Readout file fail to create.");
-                return;
-            }
-
-            QDataStream out(&file);
-            for (int i = 0; i < m_eList.size(); ++i)
-            {
-                out << m_xList[i] << m_yList[i] << m_eList[i];
-            }
-
-            file.close();
+            out << m_xList[i] << m_yList[i] << m_eList[i];
         }
+        ofile.close();
     }
+    else
+    {
+        LogOut("Readout file fail to create.");
+        return;
+    }
+
     LogOut("按 BK 保存文件完成。");
 
     //读入数据，按CM、BK保存好
@@ -513,17 +509,17 @@ void MainWindow::on_pushButton_setEW_clicked()
     }
 
     // 产生能谱, histogram
-    QVector<quint16> h0(ADC_nBins, 0);
-    for (auto e : m_eList)
+    QVector<int> h0(ADC_nBins, 0);
+    for (const auto& e : m_eList)
     {
         if(0<e && e<maxADC)
         {
-            int idx = std::floor(e/ADC_binWidth);
+            int idx = e/ADC_binWidth;
             h0[idx]++;
         }
     }
 
-    QVector<float> h1 = movingAverage(h0, 10);
+    QVector<float> h1 = Smooth(h0);
 
     float peak_x = 0;
     m_peakValue = 0;
@@ -534,7 +530,7 @@ void MainWindow::on_pushButton_setEW_clicked()
         float y = h1[i];
         points.append(QPointF(x, y));
 
-        if(y>m_peakValue)
+        if (y > m_peakValue)
         {
             peak_x = x;
             m_peakValue = y;
@@ -546,9 +542,7 @@ void MainWindow::on_pushButton_setEW_clicked()
     int minEW = std::round(peak_x*(1-EW_width));
     int maxEW = std::round(peak_x*(1+EW_width));
 
-    // 可能需要修改，要考虑电子学ADC的具体值分布
-    axisX->setRange(0, std::min(maxEW*2, 65535));
-
+    axisX->setRange(0, maxADC);
     axisY->setRange(0, m_peakValue*1.1);
 
     EWLeftLine->replace(0, minEW, 0);
@@ -586,12 +580,9 @@ void MainWindow::on_pushButton_segment_clicked()
         int y = m_yList[i];
         int e = m_eList[i];
 
-        if(minEW<e && e<maxEW)
+        if(minEW<e && e<maxEW && xmin<x && x<xmax && ymin<y && y<ymax)
         {
-            if(xmin<x && x<xmax && ymin<y && y<ymax)
-            {
-               I0(y, x) += 1;
-            }
+            I0(y, x) += 1;
         }
     }
 
@@ -678,7 +669,6 @@ void MainWindow::on_pushButton_segment_clicked()
 
     LogOut("所有晶体初始位置设置完毕。");
 
-    // 总 26*26 阵列，分成 13*13=169 组，每组 2*2=4 个点，
     // step1，每组整体做平均值移动
     for (int iRow = 0; iRow < num1; ++iRow)
     {
@@ -732,7 +722,7 @@ void MainWindow::on_pushButton_segment_clicked()
                             LogOut( "迭代过程中，分母 d = 0 !!! Bug !!!" );
                         }
                         else
-                        {       
+                        {
                             c += u/d;
                         }
                     }
@@ -858,54 +848,52 @@ void MainWindow::on_pushButton_genEnergyLUT_clicked()
     }
     QDataStream outStream(&outFile);
 
+
     for (int iCM = 0; iCM < nCM; ++iCM)
     {
         for (int iBK = 0; iBK < nBK; ++iBK)
-        {
+        { 
+            QString CMID = QString::number(iCM);
+            QString BKID = QString::number(iBK);
+
             // 读入分割结果
-            QString fName = currentPath + "Data/seg_CM" + QString::number(iCM) +
-                            "_BK" + QString::number(iBK) + ".xml";
+            QString fName = currentPath + "Data/seg_CM" + CMID + "_BK" + BKID + ".xml";
             cv::FileStorage fs(fName.toStdString(), cv::FileStorage::READ);
             cv::Mat_<quint16> segr;
             fs["segr"] >> segr;
             fs.release();
 
             // 读入原始数据
-            fName = currentPath + "Data/data_CM" + QString::number(iCM) +
-                    "_BK" + QString::number(iBK) + ".bin";
+            fName = currentPath + "Data/data_CM" + CMID + "_BK" + BKID + ".bin";
             QFile inFile(fName);
             if (!inFile.open(QIODevice::ReadOnly))
             {
                 LogOut("打开原始数据文件失败，无法生成能量查找表。");
                 return;
             }
+
             QDataStream in(&inFile);
 
             quint16 x;
             quint16 y;
             quint16 e;
 
-            m_eHists = QVector< QVector<quint16> >(nCrystal*nCrystal,
+            m_eHists = QVector< QVector<quint16> >(crystalNum,
                                                   QVector<quint16>(ADC_nBins, 0));
             while (!in.atEnd())
             {
                 in >> x >> y >> e;
-                if(xmin<x && x<xmax && ymin<y && y<ymax)
+                if(xmin<x && x<xmax && ymin<y && y<ymax && minADC<e && e<maxADC)
                 {
                     int crystalID = segr(y, x);
-
-                    if(minADC<e && e<maxADC)
-                    {
-                        int idx = std::floor(e/ADC_binWidth);
-                        m_eHists[crystalID][idx]++;
-                    }
+                    int idx = e/ADC_binWidth;
+                    m_eHists[crystalID][idx]++;
                 }
             }
             inFile.close();
 
             // 将能谱也存成文件，以便修改峰位时调用
-            fName = currentPath + "Data/eHist_CM" + QString::number(iCM) +
-                    "_BK" + QString::number(iBK) + ".bin";
+            fName = currentPath + "Data/eHist_CM" + CMID + "_BK" + BKID + ".bin";
             QFile eHist_outFile(fName);
             if(!eHist_outFile.open(QIODevice::WriteOnly))
             {
@@ -914,30 +902,30 @@ void MainWindow::on_pushButton_genEnergyLUT_clicked()
             QDataStream outEHist(&eHist_outFile);
 
             m_peaks.clear();
-            for (int iCrysatl = 0; iCrysatl < nCrystal*nCrystal; ++iCrysatl)
+            for (int i = 0; i < crystalNum; ++i)
             {
-                QVector<quint16> h0 = m_eHists[iCrysatl];
-                for (const auto& var : h0)
+                auto h0 = m_eHists[i];
+                QVector<float> h1 = Smooth(h0);
+                QVector<float> h2 = Smooth(h1);
+
+                for (const auto& var : h2)
                 {
-                    outEHist << var;
+                    outEHist << quint16(var);  // 保存能谱
                 }
 
-                QVector<float> h1 = movingAverage(h0, 10);
-                QVector<float> h2 = movingAverage(h1, 10);
-
-                int NN = 200; // 将0--NN元素置为0，防止寻峰错误
+                int NN = ADC_cutValue/ADC_binWidth; // 将0--NN元素置为0，防止寻峰错误
                 for (int iBin = 0; iBin < NN; ++iBin)
                 {
                     h2[iBin] = 0;
                 }
 
-                quint16 peakIdx = std::max_element(h2.begin(), h2.end()) - h2.begin();
-                m_peaks.push_back(ADCs[peakIdx]);
+                int idx = std::max_element(h2.begin(), h2.end()) - h2.begin();
+                m_peaks.push_back(quint16(ADCs[idx]));
             }
 
             eHist_outFile.close();
 
-            for (quint16 value : m_peaks)
+            for (const auto& value : m_peaks)
             {
                 outStream << float(peakE/value);
             }
@@ -971,7 +959,7 @@ void MainWindow::on_pushButton_calPeaks_clicked()
     QDataStream in(&file);
 
     m_eHists.clear();
-    for (int i = 0; i < nCrystal*nCrystal; ++i)
+    for (int i = 0; i < crystalNum; ++i)
     {
         QVector<quint16> iHist(ADC_nBins, 0);
         for (int iBin = 0; iBin < ADC_nBins; ++iBin)
@@ -989,6 +977,7 @@ void MainWindow::on_pushButton_calPeaks_clicked()
     EWRightLine->replace(1, 0, 0);
 
     chartView->resize(nPixel, 400);
+    axisX->setRange(minADC, maxADC);
 
     // 读入能量查找表
     QFile infile(fName_LUT_E);
@@ -996,9 +985,9 @@ void MainWindow::on_pushButton_calPeaks_clicked()
     {
         QDataStream in(&infile);
         m_peaks.clear();
-        for (int i = 0; i < nCrystal*nCrystal; ++i)
+        for (int i = 0; i < crystalNum; ++i)
         {
-            float slope = 0;
+            float slope;
             in >> slope;
             m_peaks.append(std::round(peakE/slope));
         }
@@ -1011,6 +1000,42 @@ void MainWindow::on_pushButton_calPeaks_clicked()
     }
 
     ShowEHist();
+}
+
+
+void MainWindow::ShowEHist(int peakLoc)
+{
+    int m = ui->lineEdit_colID->text().toInt();
+    int n = ui->lineEdit_rowID->text().toInt();
+    int crystalID = n*nCrystal + m;
+
+    QVector<quint16> h0 = m_eHists[crystalID];
+
+    int x = m_peaks[crystalID];
+    float y = *std::max_element(h0.begin(), h0.end());
+
+    QVector<QPointF> points;
+    for (int i = 0; i < ADC_nBins; ++i)
+    {
+        points.append(QPointF(ADCs[i], h0[i]));
+    }
+    eHistLine->replace(points);
+
+    if(-1==peakLoc)
+    {
+        peakLine->replace(0, x, 0);
+        peakLine->replace(1, x, y);
+    }
+    else
+    {
+        peakLine->replace(0, peakLoc, 0);
+        peakLine->replace(1, peakLoc, y);
+    }
+
+    axisY->setRange(0, y*1.1);
+
+    QPixmap pixmap = chartView->grab();
+    ui->label_floodmap->setPixmap(pixmap);
 }
 
 
@@ -1027,6 +1052,7 @@ void MainWindow::on_pushButton_calOnePeak_clicked()
     int rowID = ui->lineEdit_rowID->text().toInt();
     int colID = ui->lineEdit_colID->text().toInt();
     int crystalID = rowID*nCrystal + colID;
+    qDebug() << "crystal ID = " << crystalID;
 
     // 打开[CMID, BKID]指定的 BK 的能谱文件
     QString fName = currentPath + "Data/eHist_CM" + QString::number(CMID) +
@@ -1049,12 +1075,13 @@ void MainWindow::on_pushButton_calOnePeak_clicked()
 
     // 读入之前确定的能峰峰位
     QFile peaksFile(fName_LUT_E);
-    quint16 peakLoc = 0;
+    int peakLoc = 0;
     if(peaksFile.open(QIODevice::ReadOnly))
     {
         QDataStream in(&peaksFile);
         int totalBKID = CMID*nBK + BKID;
-        peaksFile.seek( (totalBKID*nCrystal*nCrystal+crystalID)*sizeof(float) );
+        int position = (totalBKID*crystalNum+crystalID)*sizeof(double);
+        peaksFile.seek(position);
         float slope;
         in >> slope;
         peakLoc = std::round(peakE/slope);
@@ -1067,18 +1094,16 @@ void MainWindow::on_pushButton_calOnePeak_clicked()
 
     // 将能谱和能峰画图
     auto h0 = m_eHists[crystalID];
-    QVector<float> h1 = movingAverage(h0, 10);
-    QVector<float> h2 = movingAverage(h1, 10);
-
-    float y = *std::max_element(h2.begin(), h2.end());
 
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
     {
-        points.append(QPointF(ADCs[i], h2[i]));
+        points.append(QPointF(ADCs[i], h0[i]));
     }
 
     eHistLine->replace(points);
+
+    float y = *std::max_element(h0.begin(), h0.end());
     peakLine->replace(0, peakLoc, 0);
     peakLine->replace(1, peakLoc, y);
 
@@ -1314,7 +1339,7 @@ void MainWindow::on_pushButton_calSegFOM_clicked()
     quint64 totalEvts = 0;
     quint64 edgeEvts = 0;
     quint64 edgeN = 0;
-    QVector< QVector<int> > nEvts(nCrystal*nCrystal);
+    QVector< QVector<int> > nEvts(crystalNum);
     int pixelCounter = 0;
     for (int i = 0; i < nPixel; ++i)
     {
@@ -1342,7 +1367,7 @@ void MainWindow::on_pushButton_calSegFOM_clicked()
     ui->lineEdit_IR->setText(QString::number(IR, 'f', 2));
 
     QVector<float> RMS;
-    for (int iCrystal=0; iCrystal<nCrystal*nCrystal; ++iCrystal)
+    for (int iCrystal=0; iCrystal<crystalNum; ++iCrystal)
     {
         // 求每个晶体的rms
         QVector<int> data = nEvts[iCrystal];
@@ -1371,48 +1396,9 @@ void MainWindow::on_pushButton_calSegFOM_clicked()
 }
 
 
-void MainWindow::ShowEHist(int peakLoc)
-{
-    int m = ui->lineEdit_colID->text().toInt();
-    int n = ui->lineEdit_rowID->text().toInt();
-    int crystalID = n*nCrystal + m;
-
-    QVector<quint16> h0 = m_eHists[crystalID];
-    QVector<float> h1 = movingAverage(h0, 10);
-    QVector<float> h2 = movingAverage(h1, 10);
-
-    int x = m_peaks[crystalID];
-    float y = *std::max_element(h2.begin(), h2.end());
-
-    QVector<QPointF> points;
-    for (int i = 0; i < ADC_nBins; ++i)
-    {
-        points.append(QPointF(ADCs[i], h2[i]));
-    }
-    eHistLine->replace(points);
-
-    if(-1==peakLoc)
-    {
-        peakLine->replace(0, x, 0);
-        peakLine->replace(1, x, y);
-    }
-    else
-    {
-        peakLine->replace(0, peakLoc, 0);
-        peakLine->replace(1, peakLoc, y);
-    }
-
-    axisY->setRange(0, y*1.1);
-
-    QPixmap pixmap = chartView->grab();
-    ui->label_floodmap->setPixmap(pixmap);
-}
-
-
 // 计算移动平均值
 template<typename T>
-QVector<float> MainWindow::movingAverage(const QVector<T>& data,
-                                          int windowSize)
+QVector<float> MainWindow::Smooth(const QVector<T>& data, int window)
 {
     QVector<float> smoothedData;
 
@@ -1422,7 +1408,7 @@ QVector<float> MainWindow::movingAverage(const QVector<T>& data,
         int counter = 0;
 
         // 计算窗口范围内的数据点的和
-        int start = std::max(0, i - windowSize + 1);
+        int start = std::max(0, i - window + 1);
         int stop = std::min(i, static_cast<int>(data.size())-1);
         for (int j = start; j <= stop; ++j)
         {
@@ -1458,51 +1444,19 @@ void MainWindow::on_pushButton_writePeaks_clicked()
 }
 
 
-void MainWindow::LogOut(QString str)
-{
-    QString s0 = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
-    QString s1 = s0 + "  " + str;
-    *logOutStream << s1 << Qt::endl;
-    qDebug() << s1;
-}
-
-
 void MainWindow::on_pushButton_calEnergyResolution_clicked()
 {
     // 打开[CMID, BKID]指定的 BK 的能谱文件, 读入E Hist数据
     QString CMID = ui->lineEdit_CMID->text();
     QString BKID = ui->lineEdit_BKID->text();
 
-    // 读入能谱数据
-    QString fName = currentPath + "Data/eHist_CM" + CMID + "_BK" + BKID + ".bin";
-    QFile file(fName);
-    if (file.open(QIODevice::ReadOnly))
-    {
-        QDataStream in(&file);
-        m_eHists.clear();
-        for (int i = 0; i < nCrystal*nCrystal; ++i)
-        {
-            QVector<quint16> iHist(ADC_nBins, 0);
-            for (int iBin = 0; iBin < ADC_nBins; ++iBin)
-            {
-                in >> iHist[iBin];
-            }
-            m_eHists.append(iHist);
-        }
-        file.close();
-    }
-    else
-    {
-        LogOut("文件打开失败，无法读入能谱数据。");
-    }
-
     // 读入能量校正表
-    QVector<float> ADC2keV(nCrystal*nCrystal, 0);
+    QVector<float> ADC2keV(crystalNum, 0);
     QFile infile(fName_LUT_E);
     if (infile.open(QIODevice::ReadOnly))
     {
         QDataStream in(&infile);
-        for (int i = 0; i < nCrystal*nCrystal; ++i)
+        for (int i = 0; i < crystalNum; ++i)
         {
             in >> ADC2keV[i];
         }
@@ -1513,28 +1467,57 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
         LogOut("文件打开失败，无法读入能量查找表。");
     }
 
-    // 计算单根分辨率和总分辨率
-    QVector<int> totalEHist(recE_nBins, 0);
-    QVector<float> ERs;
-    for (int i = 0; i < nCrystal*nCrystal; ++i)
-    {
-        float slope = ADC2keV[i];
-        auto iHist = m_eHists[i];
+    // 读入分割结果
+    QString fName = currentPath + "Data/seg_CM" + CMID + "_BK" + BKID + ".xml";
+    cv::FileStorage fs(fName.toStdString(), cv::FileStorage::READ);
+    cv::Mat_<quint16> segr;
+    fs["segr"] >> segr;
+    fs.release();
 
-        QVector<int> recEHist(recE_nBins, 0);
-        for (int iBin = 0; iBin < ADC_nBins; ++iBin)
+    QVector<int> totalEHist(recE_nBins, 0);
+    QVector< QVector<int> > eHists(crystalNum, QVector<int>(recE_nBins, 0));
+
+    // 读入原始数据
+    fName = currentPath + "Data/data_CM" + CMID + "_BK" + BKID + ".bin";
+    QFile inFile(fName);
+    if (inFile.open(QIODevice::ReadOnly))
+    {
+        QDataStream in(&inFile);
+
+        quint16 x;
+        quint16 y;
+        quint16 e;
+
+        while (!in.atEnd())
         {
-            float e = ADCs[iBin]*slope; // ADC==>keV
-            int n = iHist[iBin];
-            if(0<e && e<maxRecE)
+            in >> x >> y >> e;
+            if(xmin<x && x<xmax && ymin<y && y<ymax && minADC<e && e<maxADC)
             {
-                int idx = std::floor(e/recE_binWidth);
-                recEHist[idx] += n;
-                totalEHist[idx] += n;
+                int crystalID = segr(y, x);
+                float slope = ADC2keV[crystalID];
+                float e_keV = e*slope; // ADC==>keV
+                if(minRecE<e_keV && e_keV<maxRecE)
+                {
+                    int idx = std::floor(e_keV/recE_binWidth);
+                    totalEHist[idx]++;
+                    eHists[crystalID][idx]++;
+                }
             }
         }
+        inFile.close();
+    }
+    else
+    {
+        LogOut("打开原始数据文件失败，无法生成能量查找表。");
+        return;
+    }
 
-        float aER =  GetER(recEHist);
+    // 计算单根分辨率
+    QVector<float> ERs;
+    for (int i = 0; i < crystalNum; ++i)
+    {
+        auto iHist = eHists[i];
+        float aER =  GetER(iHist);
         ERs.append(aER);
     }
 
@@ -1546,6 +1529,7 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
         {
             float aER = ERs[iRow*nCrystal + iCol];
             ERMat(iRow, iCol) = aER;
+            //qDebug() << "n = " << iRow << ", m = " << iCol << ", ER = " << aER;
         }
     }
 
@@ -1561,18 +1545,19 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     float halfMax = 1.0*peakValue / 2;
     int leftIndex = peakIndex;
     int rightIndex = peakIndex;
-    while (leftIndex > 0 && totalEHist[leftIndex-1] >= halfMax)
+
+    while (leftIndex > 0 && totalEHist[leftIndex-1]>halfMax)
     {
         leftIndex--;
     }
-    while (rightIndex < totalEHist.size()-1 && totalEHist[rightIndex+1] >= halfMax)
+    while (rightIndex < totalEHist.size()-1 && totalEHist[rightIndex+1]>halfMax)
     {
         rightIndex++;
     }
 
-    float peakLocValue = peakIndex*recE_binWidth + recE_binWidth/2;
-    float leftValue = leftIndex*recE_binWidth + recE_binWidth/2;
-    float rightValue = rightIndex*recE_binWidth + recE_binWidth/2;
+    float peakLocValue = recEs[peakIndex];
+    float leftValue = recEs[leftIndex];
+    float rightValue = recEs[rightIndex];
     float FWHM = rightValue - leftValue; // 半高宽
 
     qDebug() << "peakLocValue = " << peakLocValue;
@@ -1587,8 +1572,9 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     QVector<QPointF> points;
     for (int i = 0; i < recE_nBins; ++i)
     {
-        float x = i*recE_binWidth + recE_binWidth/2;
-        points.append(QPointF(x, totalEHist[i]));
+        float x = recEs[i];
+        float y = totalEHist[i];
+        points.append( QPointF(x, y) );
     }
 
     eHistLine->replace(points);
@@ -1599,12 +1585,11 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     EWRightLine->replace(0, rightValue, 0);
     EWRightLine->replace(1, rightValue, peakValue);
 
-    axisX->setRange(0, maxRecE);
+    axisX->setRange(minRecE, maxRecE);
     axisY->setRange(0, std::round(peakValue*1.1));
     chartView->resize(ui->label_eHist->size());
 
     QPixmap pixmap = chartView->grab();
-
     QPainter painter(&pixmap);
     painter.setPen(QPen(Qt::red, 1));
 
@@ -1662,7 +1647,7 @@ void MainWindow::on_pushButton_calUniformity_clicked()
     {
         QDataStream in(&file);
 
-        for (int iCrystal = 0; iCrystal < nCrystal*nCrystal; ++iCrystal)
+        for (int iCrystal = 0; iCrystal < crystalNum; ++iCrystal)
         {
             QVector<quint16> iHist(ADC_nBins, 0);
             for (int iBin = 0; iBin < ADC_nBins; ++iBin)
@@ -1688,7 +1673,7 @@ void MainWindow::on_pushButton_calUniformity_clicked()
 
     ShowImage(nEvts);
 
-    float mean_nEvts = 1.0*totalEvts/(nCrystal*nCrystal);
+    float mean_nEvts = 1.0*totalEvts/(crystalNum);
     cv::Mat_<float> uniformityPar = mean_nEvts/nEvts;
 
     QFile outfile(fName_LUT_U);
@@ -1734,3 +1719,11 @@ void MainWindow::on_lineEdit_maxEW_editingFinished()
     ui->label_eHist->setPixmap(pixmap);
 }
 
+
+void MainWindow::LogOut(QString str)
+{
+    QString s0 = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
+    QString s1 = s0 + "  " + str;
+    *logOutStream << s1 << Qt::endl;
+    qDebug() << s1;
+}
