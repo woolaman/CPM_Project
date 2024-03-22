@@ -12,11 +12,8 @@ public:
     Histogram(double xmin, double xmax, int nBins);
     ~Histogram();
 
-    template<typename T>
-    void Fill(T& value);
-
-    template<typename T>
-    void Fill(QVector<T>& vec);
+    template<typename T> void Fill(T& value);
+    template<typename T> void Fill(QVector<T>& vec);
 
     double GetBinWidth();
 

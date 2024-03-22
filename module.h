@@ -6,6 +6,15 @@ class Module
 {
 public:
     Module();
+	~Module();
+	
+	
+	
+	private:
+	
+	
+	
+	
 };
 
 #endif // MODULE_H

@@ -2,7 +2,7 @@
 #define BLOCK_H
 
 
-#include "crystal.h"
+#include "Crystal.h"
 
 
 class Block
@@ -19,9 +19,7 @@ public:
     Histogram GetEHist();
 
 
-    void append(Crystal aCrystal);
-
-
+    void Append(Crystal aCrystal);
 
 
 

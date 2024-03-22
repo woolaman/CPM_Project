@@ -3,7 +3,7 @@
 
 #include <QVector>
 
-#include "histogram.h"
+#include "Histogram.h"
 
 class Crystal
 {
@@ -19,8 +19,8 @@ public:
     int GetRowID();
     int GetColID();
 
-    void setID(int ID);
-    void setID(int rowID, int colID);
+    void SetID(int ID);
+    void SetID(int rowID, int colID);
 
 
 private:

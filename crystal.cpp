@@ -1,4 +1,4 @@
-#include "crystal.h"
+#include "Crystal.h"
 
 Crystal::Crystal()
 {

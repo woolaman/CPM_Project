@@ -327,7 +327,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="floodmapLabel" name="label_floodmap">
+   <widget class="LabelFloodmap" name="label_floodmap">
     <property name="geometry">
      <rect>
       <x>460</x>
@@ -343,7 +343,7 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="eHistLabel" name="label_eHist">
+   <widget class="LabelHistogram" name="label_eHist">
     <property name="geometry">
      <rect>
       <x>460</x>
@@ -531,14 +531,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>eHistLabel</class>
+   <class>LabelHistogram</class>
    <extends>QLabel</extends>
-   <header>ehistlabel.h</header>
+   <header>LabelHistogram.h</header>
   </customwidget>
   <customwidget>
-   <class>floodmapLabel</class>
+   <class>LabelFloodmap</class>
    <extends>QLabel</extends>
-   <header>floodmaplabel.h</header>
+   <header>LabelFloodmap.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

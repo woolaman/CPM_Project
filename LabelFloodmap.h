@@ -1,22 +1,23 @@
-#ifndef EHISTLABEL_H
-#define EHISTLABEL_H
+#ifndef LABELFLOODMAP_H
+#define LABELFLOODMAP_H
 
+#include <QApplication>
 #include <QLabel>
 #include <QObject>
 #include <QPoint>
 #include <QMouseEvent>
 
 
-class eHistLabel : public QLabel
+class LabelFloodmap : public QLabel
 {
     Q_OBJECT
 
-public:
-    eHistLabel(QWidget *parent = nullptr);
-    ~eHistLabel();
 
-    QPoint GetLeftPos();
-    QPoint GetRightPos();
+public:
+    LabelFloodmap(QWidget *parent = nullptr);
+    ~LabelFloodmap();
+
+    QPoint GetPos();
 
 
 signals:
@@ -29,8 +30,7 @@ protected:
 
 
 private:
-    QPoint m_leftPos;
-    QPoint m_rightPos;
+    QPoint m_pos;
 };
 
-#endif // EHISTLABEL_H
+#endif // LABELFLOODMAP_H

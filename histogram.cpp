@@ -1,4 +1,7 @@
-#include "histogram.h"
+#include "Histogram.h"
+
+#include "opencv2/core/mat.hpp"
+#include "opencv2/imgproc.hpp"
 
 
 Histogram::Histogram() { }
@@ -72,25 +75,22 @@ QVector<double> Histogram::GetBinCenters()
 
 void Histogram::Smooth(int windowSize=10)
 {
-
-    QVector<double> smoothedData(m_nBins, 0);
-
-    for (int i = 0; i < m_nBins; ++i)
+	// 将 std::vector 转换为 cv::Mat
+    QVector<int> data;
+    cv::Mat dataMat(1, data.size(), CV_32F);
+    for (size_t i = 0; i < data.size(); ++i)
     {
-        double sum = 0.0;
-        int counter = 0;
-
-        // 计算窗口范围内的数据点的和
-        int low = std::max(0, i - windowSize/2 + 1);
-        int up = std::min(i+windowSize/2, m_nBins);
-
-        double mean = std::accumulate(m_binContents.begin()+low, m_binContents.begin()+up, 0.0)/(up-low);
-
-        // 计算平均值并添加到平滑数据中
-        smoothedData[i] = mean;
+        dataMat.at<float>(0, i) = data[i];
     }
 
-    m_binContents =  smoothedData;
+    // 使用 OpenCV 的平滑函数对数据进行平滑处理
+    cv::Mat smoothedDataMat;
+    cv::blur(dataMat, smoothedDataMat, cv::Size(windowSize, 1));
+
+    // 将平滑后的数据转换为 std::vector
+    QVector<float> smoothedData(smoothedDataMat.begin<float>(),
+                                smoothedDataMat.end<float>());
+    // smoothedData;
 }
 
 

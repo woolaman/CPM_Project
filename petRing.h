@@ -6,6 +6,11 @@ class PETRing
 {
 public:
     PETRing();
+	~PETRing();
+	
+	private:
+	
+	
 };
 
 #endif // PETRING_H

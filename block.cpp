@@ -1,4 +1,5 @@
-#include "block.h"
+#include "Block.h"
+
 
 Block::Block()
 {
@@ -12,7 +13,7 @@ Block::~Block()
 }
 
 
-void Block::append(Crystal aCrystal)
+void Block::Append(Crystal aCrystal)
 {
     m_crystals.append(aCrystal);
 }

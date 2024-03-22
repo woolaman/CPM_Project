@@ -1,4 +1,4 @@
-#include "floodmap.h"
+#include "Floodmap.h"
 
 Floodmap::Floodmap()
 {

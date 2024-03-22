@@ -1,4 +1,4 @@
-#include "petRing.h"
+#include "PetRing.h"
 
 PETRing::PETRing()
 {

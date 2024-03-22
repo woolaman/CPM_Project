@@ -1,32 +1,32 @@
-#include "eHistLabel.h"
+#include "LabelHistogram.h"
 
 
-eHistLabel::eHistLabel(QWidget *parent)
+LabelHistogram::LabelHistogram(QWidget *parent)
     : QLabel(parent)
 {
     m_leftPos = QPoint(0, 0);
     m_rightPos = QPoint(0, 0);
 }
 
-eHistLabel::~eHistLabel()
+LabelHistogram::~LabelHistogram()
 {
 
 }
 
 
-QPoint eHistLabel::GetLeftPos()
+QPoint LabelHistogram::GetLeftPos()
 {
     return m_leftPos;
 }
 
 
-QPoint eHistLabel::GetRightPos()
+QPoint LabelHistogram::GetRightPos()
 {
     return m_rightPos;
 }
 
 
-void eHistLabel::mousePressEvent(QMouseEvent *event)
+void LabelHistogram::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
     {

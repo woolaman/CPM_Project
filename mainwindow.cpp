@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "Mainwindow.h"
 #include "ui_mainwindow.h"
 
 #include <QFile>
@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QMessageBox>
+#include <QThread>
 
 #include <algorithm>
 #include <math.h>
@@ -14,6 +15,8 @@
 #include <iostream>
 
 #include <opencv2/imgproc.hpp>
+
+#include "Readin.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -49,13 +52,54 @@ MainWindow::MainWindow(QWidget *parent)
     {
         if (dir.mkdir(directoryName))
         {
-            qDebug() << "Directory created successfully:" << targetDirectoryPath;
+            std::cout << "Data directory created successfully: ";
+            std::cout << targetDirectoryPath.toStdString() << std::endl;
         }
         else
         {
-            qDebug() << "Failed to create directory:" << targetDirectoryPath;
+            std::cout << "Failed to create data directory: ";
+            std::cout << targetDirectoryPath.toStdString() << std::endl;
         }
     }
+
+    ReadinParFile();
+    nCM = pars["nCM"].toInt();
+    nBK = pars["nBK"].toInt();
+    nPixel = pars["nPixel"].toInt();
+    nCrystal = pars["nCrystal"].toInt();
+    num1 = pars["num1"].toInt();
+    num2 = pars["num2"].toInt();
+
+    factor = pars["enlarge"].toFloat(); // 调整点阵大小
+    bias = pars["bias"].toInt();  // 调整点阵位置
+
+    // choose central area to analysis
+    xmin = pars["xmin"].toInt(); //int xmin = 0;
+    xmax = pars["xmax"].toInt(); //int xmax = 512;
+    ymin = pars["ymin"].toInt(); //int ymin = 0;
+    ymax = pars["ymax"].toInt(); //int ymax = 512;
+
+    segmentMethod = pars["segmentMethod"];
+
+    EW_width = pars["EW_width"].toFloat();
+
+    minADC = pars["minADC"].toInt();
+    maxADC = pars["maxADC"].toInt(); // ADC channel value
+    ADC_nBins = pars["ADC_nBins"].toInt();
+    ADC_cutValue = pars["ADC_cutValue"].toInt();
+
+    minRecE = pars["minRecE"].toInt();
+    maxRecE = pars["maxRecE"].toInt(); // keV
+    recE_nBins = pars["recE_nBins"].toInt();
+    recE_cutValue = pars["recE_cutValue"].toInt();
+
+    crystalNum = nCrystal*nCrystal;
+    ADC_binWidth = (maxADC-minADC)/ADC_nBins;
+    recE_binWidth = (maxRecE-minRecE)/recE_nBins;
+
+    fName_LUT_P = pars["Position LUT"];
+    fName_LUT_E = pars["Energy LUT"];
+    fName_LUT_U = pars["Uniformity LUT"];
 
     fName_LUT_P = currentPath + fName_LUT_P;
     fName_LUT_E = currentPath + fName_LUT_E;
@@ -142,7 +186,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_eHists = QVector< QVector<quint16> >(crystalNum,
                                           QVector<quint16>(ADC_nBins, 0));
-    m_peaks = QVector<quint16>(crystalNum, 0);
+    m_slopes = QVector<double>(crystalNum, 0);
 
     LogOut("初始化完成。");
 }
@@ -159,6 +203,8 @@ MainWindow::~MainWindow()
     delete axisY;
     delete chart;
     delete chartView;
+
+    delete dataObject;
 
     LogOut("程序关闭。");
 
@@ -264,207 +310,22 @@ QVector<int> MainWindow::FindPeaks(QVector<float> v, int nPeaks)
 void MainWindow::on_pushButton_readinData_clicked()
 {
     LogOut("开始读入数据...");
-
     QString fName = ui->lineEdit_dataPath->text();
     fName.replace("\\", "/");
-    QFile infile(fName);
-    if (infile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QTextStream in(&infile);
+    dataObject = new Readin(fName);
 
-        // 获取文件大小，用于计算进度
-        quint64 fileSize = infile.size();
+    QThread* thread = new QThread(); // 创建新线程
+    dataObject->moveToThread(thread);
 
-        ui->progressBar_readinData->setMinimum(0);
-        ui->progressBar_readinData->setMaximum(fileSize);
-        ui->progressBar_readinData->setValue(0);
+    QObject::connect(dataObject, SIGNAL(currentPos(int)),
+                     this, SLOT(UpdateProgressBar(int)));
+    QObject::connect(dataObject, SIGNAL(finished()), this, SLOT(ReStoreData));
 
-        m_xList.clear();
-        m_yList.clear();
-        m_eList.clear();
+    // 启动新线程
+    thread->start();
 
-        while (!in.atEnd())
-        {
-            QString line = in.readLine();
-            QStringList numbers = line.split(" ", Qt::SkipEmptyParts);
-
-            if(3==numbers.size())
-            {
-                int x = numbers[0].toInt();
-                int y = numbers[1].toInt();
-                int e = numbers[2].toInt();
-
-                quint16 xx = std::round(factor*x/e*nPixel) - bias;
-                quint16 yy = std::round(factor*y/e*nPixel) - bias;
-
-                if(0<xx && xx<nPixel && 0<yy && yy<nPixel && 0<e && e<maxADC)
-                {
-                    m_xList.append(xx);
-                    m_yList.append(yy);
-                    m_eList.append(e);
-                }
-            }
-            else
-            {
-                LogOut("numbers size is not 3, data file is broken!");
-                continue;
-            }
-
-            ui->progressBar_readinData->setValue(infile.pos()); // 更新进度条
-        }
-        infile.close();
-    }
-    else
-    {
-        LogOut("文件打开失败，请检查文件是否存在。");
-        return;
-    }
-
-    // 保存数据
-    fName = currentPath + "Data/data_CM0_BK0.bin";
-    QFile ofile(fName);
-    if (ofile.open(QIODevice::WriteOnly))
-    {
-        QDataStream out(&ofile);
-        for (int i = 0; i < m_eList.size(); ++i)
-        {
-            out << m_xList[i] << m_yList[i] << m_eList[i];
-        }
-        ofile.close();
-    }
-    else
-    {
-        LogOut("Readout file fail to create.");
-        return;
-    }
-
-    LogOut("按 BK 保存文件完成。");
-
-    //读入数据，按CM、BK保存好
-    //分割时再读入某一个BK的数据
-    //先按B3的格式读数据，以后再修改为B4的格式
-    /*************************************************
-    //oooooooooooooooooooOOOOOOOOOoooooooooooooooooooo
-    // 读二进制文件
-    QVector< QVector<quint16> > data(nCM*nBK);
-    quint16 x;
-    quint16 y;
-    quint16 e;
-
-    quint8 type;     // type:[3:0], [7:4]保留
-    quint8 t_high;   // t[15:8]
-    quint8 t_low;    // t[7:0]
-    quint8 sectorID; // [7:4]CMID, [3:1]BKID
-    quint8 xPos;     // x[8:1]
-    quint8 yPos;     // y[8:1]
-    quint8 e_high;   // [7]为x[0]; [6]为y[0], [3:0]为E[11:8]
-    quint8 e_low;    // E[7:0]
-
-    QString fName = ui->lineEdit_dataPath->text();
-    fName.replace("\\", "/");
-    qDebug() << "fname = " << fName << "\n";
-
-    // 检查文件是否存在
-    if (QFile::exists(fName))
-    {
-        // 文件存在，打开文件
-        QFile inFile(fName);
-
-        if (inFile.open(QIODevice::ReadOnly))
-        {
-            qDebug() << "File opened successfully!";
-            QDataStream in(&inFile);
-            // 循环读取每个事例的数据
-            // int counter = 0;
-            while (!in.atEnd())
-            {
-                // 读取8个变量的数据
-                in >> type >> t_high >> t_low >> sectorID >>
-                    xPos >> yPos >> e_high >> e_low;
-
-                // counter++;
-
-                // 处理读取的数据
-                if(type!=3)
-                {
-                    qDebug() << "type is not 3. break \n";
-                    continue;
-                }
-
-                int CMID = (sectorID >> 4);
-                if(CMID<0 || CMID >7)
-                {
-                    qDebug() << "CMID is out of range! \n";
-                    continue;
-                }
-
-                int BKID = ((sectorID >> 1) & 0x07);
-                if(BKID<0 || BKID >5)
-                {
-                    qDebug() << "BKID is out of range! \n";
-                    continue;
-                }
-
-                int iLine = CMID*nBK + BKID;
-                if(iLine>48 || iLine<0)
-                {
-                    qDebug() << "total BKID is out of range! \n";
-                    continue;
-                }
-
-                x = xPos*2 + (e_high>>7);
-                y = yPos*2 + ( (e_high>>6) & 0x01);
-                e = (e_high&0x0F)*std::pow(2,8) + e_low;
-
-                data[iLine].append(x);
-                data[iLine].append(y);
-                data[iLine].append(e);
-
-                // if(counter%10000==0)
-                // {
-                //      std::cout << "x = " << x << "; y = " <<
-                //                      y << "; e = " << e << std::endl;
-                // }
-            }
-
-            qDebug() << "while loop end. \n";
-            inFile.close();
-        }
-        else
-        {
-            qDebug() << "Error opening file!";
-        }
-
-        //保存数据
-        for (int iFile = 0; iFile<data.size(); ++iFile)
-        {
-            int CMID = iFile/nBK;
-            int BKID = iFile%nBK;
-
-            QString outFileName =
-                QString("./Data/data_CM%1_BK%2.bin").arg(CMID).arg(BKID);
-            QFile outFile(outFileName);
-
-            if (outFile.open(QIODevice::WriteOnly))
-            {
-                // 创建数据流
-                QDataStream out(&outFile);
-                foreach (auto var, data[iFile])
-                {
-                    out << var;
-                }
-                // out << data[iFile];
-                outFile.close();
-            }
-        }
-    }
-    else
-    {
-        // 文件不存在，处理错误
-        qDebug() << "File does not exist!";
-    }
-    //oooooooooooooooooooOOOOOOOOOoooooooooooooooooooo
-    ***************************************************/
+    dataObject->StartReadTxt();
+    // dataObject->StartReadBin();
 }
 
 
@@ -474,7 +335,8 @@ void MainWindow::on_pushButton_setEW_clicked()
     QString CMID = ui->lineEdit_CMID->text();
     QString BKID = ui->lineEdit_BKID->text();
 
-    QString fName = currentPath + "Data/data_CM" + CMID +  "_BK" + BKID + ".bin";
+    QString fName = currentPath + "Data/data_CM" + CMID +
+                    "_BK" + BKID + ".bin";
     if (!QFile::exists(fName))
     {
         LogOut("文件不存在，请检查文件是否存在。");
@@ -557,22 +419,8 @@ void MainWindow::on_pushButton_setEW_clicked()
     ui->lineEdit_minEW->setText(QString::number(minEW));
     ui->lineEdit_maxEW->setText(QString::number(maxEW));
     LogOut("画出整个BK能谱，并自动生成峰值左右各25%能窗参数。");
-}
-
-
-void MainWindow::on_pushButton_segment_clicked()
-{
-    LogOut("开始分割...");
-    imgFlag = 0;
-    //QElapsedTimer timer;
-    //timer.start();
-    //qint64 elapsedTime = timer.elapsed();
-    //qDebug() << "Elapsed time:" << elapsedTime << "milliseconds";
 
     // 参照能窗的设置参数，筛选数据
-    int minEW = ui->lineEdit_minEW->text().toInt();
-    int maxEW = ui->lineEdit_maxEW->text().toInt();
-
     I0 = cv::Mat::zeros(nPixel, nPixel, CV_32FC1);
     for (int i = 0; i < m_eList.size(); ++i)
     {
@@ -585,207 +433,242 @@ void MainWindow::on_pushButton_segment_clicked()
             I0(y, x) += 1;
         }
     }
-
-    LogOut("Generate I0. ");
-
-    //ShowImage(I0);
-    //return;
-
-    if(0==cv::countNonZero(I0))
-    {
-        qDebug() << "I0 all zeros! bug!!!";
-    }
+    ShowImage(I0);
+    //LogOut("Generate I0. ");
 
     //cv::Mat color_I0 = GetColorMap(I0);
     //cv::namedWindow("I0", cv::WINDOW_NORMAL); // cv::WINDOW_AUTOSIZE
     //cv::imshow("I0", color_I0);
+}
 
-    // 自动寻峰, 奇异值分解, 寻找规则峰位作为平均值移动算法的迭代初始位置
-    // 平均值移动算法，寻找peaks
-    cv::Mat U, S, Vt;
-    cv::SVD::compute(I0, S, U, Vt); // 进行奇异值分解
 
-    cv::Mat S1 = cv::Mat::zeros(I0.size(), CV_32FC1);
-    S1.at<float>(0, 0) = S.at<float>(0, 0);
-    cv::Mat I1 = U*S1*Vt;
-    LogOut("SVD done. ");
+void MainWindow::on_pushButton_segment_clicked()
+{
+    LogOut("开始分割...");
+    imgFlag = 0;
 
-    //cv::Mat color_I1 = GetColorMap(I1);
-    //cv::namedWindow("I1", cv::WINDOW_NORMAL);
-    //cv::imshow("I1", color_I1);
-
-    cv::Mat col_sum, row_sum;
-    cv::reduce(I1, col_sum, 0, cv::REDUCE_SUM);
-    cv::reduce(I1, row_sum, 1, cv::REDUCE_SUM);
-
-    QVector<float> colSumVec = {col_sum.begin<float>(), col_sum.end<float>()};
-    QVector<float> rowSumVec = {row_sum.begin<float>(), row_sum.end<float>()};
-    QVector<int> peak_x_index = FindPeaks(colSumVec, nCrystal);
-    QVector<int> peak_y_index = FindPeaks(rowSumVec, nCrystal);
-
-    /****************************************************
-    // show the result of FindPeaks to debug
-    QChart* chart = new QChart();
-
-    QLineSeries* line = new QLineSeries();
-    line->setPen(QPen(Qt::black, 1));
-
-    for (int i = 0; i < nPixel; ++i)
+    if(segmentMethod=="SVD")
     {
-        line->append(i, colSumVec[i]);
-    }
-    chart->addSeries(line);
+        // 自动寻峰, 奇异值分解, 寻找规则峰位作为平均值移动算法的迭代初始位置
+        // 平均值移动算法，寻找peaks
+        cv::Mat U, S, Vt;
+        cv::SVD::compute(I0, S, U, Vt); // 进行奇异值分解
 
-    float maxValue = *std::max_element(colSumVec.begin(), colSumVec.end());
-    for (int i = 0; i < nCrystal; ++i)
-    {
-        int x = peak_x_index[i];
-        QLineSeries* series = new QLineSeries();
-        series->setPen(QPen(Qt::red, 1));
-        series->append(x, 0);
-        series->append(x, maxValue);
-        chart->addSeries(series);
-    }
+        cv::Mat S1 = cv::Mat::zeros(I0.size(), CV_32FC1);
+        S1.at<float>(0, 0) = S.at<float>(0, 0);
+        cv::Mat I1 = U*S1*Vt;
+        LogOut("SVD done. ");
 
-    chart->createDefaultAxes();
-    chart->setMargins(QMargins(0, 0, 0, 0)); // 调整图表边距
-    chart->legend()->setVisible(false); // 关闭图例
+        cv::Mat col_sum, row_sum;
+        cv::reduce(I1, col_sum, 0, cv::REDUCE_SUM);
+        cv::reduce(I1, row_sum, 1, cv::REDUCE_SUM);
 
-    QChartView* chartView = new QChartView(chart);
-    chartView->resize(ui->label_eHist->size());
+        QVector<float> colSumVec =
+            {col_sum.begin<float>(), col_sum.end<float>()};
+        QVector<float> rowSumVec =
+            {row_sum.begin<float>(), row_sum.end<float>()};
+        QVector<int> peak_x_index = FindPeaks(colSumVec, nCrystal);
+        QVector<int> peak_y_index = FindPeaks(rowSumVec, nCrystal);
 
-    QPixmap pixmap = chartView->grab();
-    ui->label_eHist->setPixmap(pixmap);
-    **************************************************/
-
-    for (int i = 0; i < nCrystal; ++i)
-    {
-        for (int  j= 0; j < nCrystal; ++j)
+        for (int i = 0; i < nCrystal; ++i)
         {
-            pt(i, j)[0] = peak_x_index[j];
-            pt(i, j)[1] = peak_y_index[i];
-        }
-    }
-
-    LogOut("所有晶体初始位置设置完毕。");
-
-    // step1，每组整体做平均值移动
-    for (int iRow = 0; iRow < num1; ++iRow)
-    {
-        for (int iCol = 0; iCol < num1; ++iCol)
-        {
-            // 求 4 个点的重心的初始位置
-            cv::Point2f c0(0, 0);
-            for (int i = 0; i < num2; ++i)
+            for (int  j= 0; j < nCrystal; ++j)
             {
-                for (int j = 0; j < num2; ++j)
-                {
-                    c0 += cv::Point2f(pt(iRow*num2+i, iCol*num2+j)[0],
-                                      pt(iRow*num2+i, iCol*num2+j)[1]);
-                }
+                pt(i, j)[0] = peak_x_index[j];
+                pt(i, j)[1] = peak_y_index[i];
             }
+        }
 
-            cv::Point2f c = c0/(num2*num2); // 初始位置
-            cv::Point2f pre_c(0, 0);
+        LogOut("所有晶体初始位置设置完毕。");
 
-            while (cv::norm(pre_c-c) > 1)  // 迭代移动重心
+        // step1，每组整体做平均值移动
+        for (int iRow = 0; iRow < num1; ++iRow)
+        {
+            for (int iCol = 0; iCol < num1; ++iCol)
             {
-                pre_c = c;
-                c = cv::Point2f(0, 0);
-
-                // 计算重心
+                // 求 4 个点的重心的初始位置
+                cv::Point2f c0(0, 0);
                 for (int i = 0; i < num2; ++i)
                 {
                     for (int j = 0; j < num2; ++j)
                     {
-                        cv::Point2f x(pt(iRow*num2+i, iCol*num2+j)[0],
-                                      pt(iRow*num2+i, iCol*num2+j)[1]);
+                        c0 += cv::Point2f(pt(iRow*num2+i, iCol*num2+j)[0],
+                                          pt(iRow*num2+i, iCol*num2+j)[1]);
+                    }
+                }
 
-                        // 累加项
-                        cv::Point2f u(0, 0);
-                        float d = 0;
-                        int r = 6;
-                        for (int m = x.x-r; m <= x.x+r; ++m)
+                cv::Point2f c = c0/(num2*num2); // 初始位置
+                cv::Point2f pre_c(0, 0);
+
+                //int counter = 0;
+                while (cv::norm(pre_c-c) > 1)  // 迭代移动重心
+                {
+                    //counter++;
+                    pre_c = c;
+                    c = cv::Point2f(0, 0);
+
+                    // 计算重心
+                    for (int i = 0; i < num2; ++i)
+                    {
+                        for (int j = 0; j < num2; ++j)
                         {
-                            for (int n = x.y-r; n <= x.y+r; ++n)
+                            cv::Point2f x(pt(iRow*num2+i, iCol*num2+j)[0],
+                                          pt(iRow*num2+i, iCol*num2+j)[1]);
+
+                            // 累加项
+                            cv::Point2f u(0, 0);
+                            float d = 0;
+                            int r = 6;
+                            for (int m = x.x-r; m <= x.x+r; ++m)
                             {
-                                if (cv::norm(x-cv::Point2f(m, n)) <= r)
+                                for (int n = x.y-r; n <= x.y+r; ++n)
                                 {
-                                    u += I0(n, m)*cv::Point2f(m, n);
-                                    d += I0(n, m);
+                                    if (cv::norm(x-cv::Point2f(m, n)) <= r)
+                                    {
+                                        u += I0(n, m)*cv::Point2f(m, n);
+                                        d += I0(n, m);
+                                    }
                                 }
                             }
-                        }
 
-                        if(d==0)
-                        {
-                            LogOut( "迭代过程中，分母 d = 0 !!! Bug !!!" );
-                        }
-                        else
-                        {
-                            c += u/d;
+                            if(d==0)
+                            {
+                                LogOut( "迭代过程中，分母 d = 0 !!! Bug !!!" );
+                            }
+                            else
+                            {
+                                c += u/d;
+                            }
                         }
                     }
-                }
 
-                c = c/(num2*num2);
+                    c = c/(num2*num2);
 
-                for (int i = 0; i < num2; ++i)
-                {
-                    for (int j = 0; j < num2; ++j)
+                    for (int i = 0; i < num2; ++i)
                     {
-                        pt(iRow*num2+i, iCol*num2+j)[0] += std::round(c.x - pre_c.x);
-                        pt(iRow*num2+i, iCol*num2+j)[1] += std::round(c.y - pre_c.y);
-                    }
-                }
-            }
-        }
-    }
-    LogOut("第一次平均值移动迭代，每组峰位移动完成。");
-
-    // step2, all peak 做平均值移动
-    //循环遍历所有峰，使得每个峰做小范围移动
-    for (int iRow = 0; iRow < nCrystal; ++iRow)
-    {
-        for (int iCol = 0; iCol < nCrystal; ++iCol)
-        {
-            cv::Point2f x(pt(iRow, iCol)[0], pt(iRow, iCol)[1]);
-            cv::Point2f pre_x(0, 0);
-            while(cv::norm(pre_x-x)>0.1)
-            {
-                pre_x = x;
-                cv::Point2f u(0, 0);
-                float d = 0;
-
-                int r = 5;
-                for (int i = x.x-r; i <= x.x+r; ++i)
-                {
-                    for (int j = x.y-r; j <= x.y+r; ++j) {
-
-                        if (cv::norm(x-cv::Point2f(i, j)) <= r)
+                        for (int j = 0; j < num2; ++j)
                         {
-                            float k = cv::norm(x-cv::Point2f(i, j))/pow((2*r+1), 2);
-                            float g = (1/sqrt(2*M_PI))*exp(-0.5*k);
-                            u += I0(j, i)*g*cv::Point2f(i, j);
-                            d += I0(j, i)*g;
+                            pt(iRow*num2+i, iCol*num2+j)[0] +=
+                                std::round(c.x - pre_c.x);
+                            pt(iRow*num2+i, iCol*num2+j)[1] +=
+                                std::round(c.y - pre_c.y);
                         }
                     }
                 }
+                //qDebug() << "The first mean-shift times is " << counter;
+            }
+        }
+        LogOut("第一次平均值移动迭代，每组峰位移动完成。");
 
-                if (d==0)
+        // step2, all peak 做平均值移动
+        //循环遍历所有峰，使得每个峰做小范围移动
+        for (int iRow = 0; iRow < nCrystal; ++iRow)
+        {
+            for (int iCol = 0; iCol < nCrystal; ++iCol)
+            {
+                cv::Point2f x(pt(iRow, iCol)[0], pt(iRow, iCol)[1]);
+                cv::Point2f pre_x(0, 0);
+                //int counter = 0;
+                while(cv::norm(pre_x-x)>0.1)
                 {
-                    LogOut( "迭代过程中，分母 d = 0 !!! Bug !!!" );
+                    //counter++;
+                    pre_x = x;
+                    cv::Point2f u(0, 0);
+                    float d = 0;
+
+                    int r = 5;
+                    for (int i = x.x-r; i <= x.x+r; ++i)
+                    {
+                        for (int j = x.y-r; j <= x.y+r; ++j)
+                        {
+                            if (cv::norm(x-cv::Point2f(i, j)) < r)
+                            {
+                                float k =
+                                    cv::norm(x-cv::Point2f(i, j))/pow((2*r+1), 2);
+                                float g = (1/sqrt(2*M_PI))*exp(-0.5*k);
+                                u += I0(j, i)*g*cv::Point2f(i, j);
+                                d += I0(j, i)*g;
+                            }
+                        }
+                    }
+
+                    if (d==0)
+                    {
+                        LogOut( "迭代过程中，分母 d = 0 !!! Bug !!!" );
+                    }
+                    else
+                    {
+                        x = u/d;
+                    }
                 }
-                else
+                //qDebug() << "The second mean-shift times is " << counter;
+
+                pt(iRow, iCol)[0] = std::round(x.x);
+                pt(iRow, iCol)[1] = std::round(x.y);
+            }
+        }
+        LogOut("第二次平均值移动迭代。所有峰位寻找完成。");
+    }
+
+
+    if(segmentMethod=="FindMaximum") // maximum method to find peaks
+    {
+        // 使用 OpenCV 的平滑函数对数据进行平滑处理
+        cv::Mat_<float> I1;
+        cv::blur(I0, I1, cv::Size(3, 3));
+
+        //cv::Mat_<float> I2;
+        //cv::GaussianBlur(I1, I2, cv::Size(3, 3), 1, 1);
+        //I1 = I2;
+
+        QVector<cv::Point> peaks;
+        //for (int i = 0; i < crystalNum; ++i)
+        for (int i = 0; i < 20; ++i)
+        {
+            double minVal, maxVal;
+            cv::Point minLoc, maxLoc;
+            cv::minMaxLoc(I1, &minVal, &maxVal, &minLoc, &maxLoc);
+
+            peaks.append(maxLoc);
+
+            // 将maxLoc附近的元素置为0
+            int m0 = maxLoc.x;
+            int n0 = maxLoc.y;
+            int r = 5;
+
+            for (int n = n0-r; n <= n0+r; ++n)
+            {
+                for (int m = m0-r; m <=m0+r ; ++m)
                 {
-                    x = u/d;
+                    if(cv::norm(maxLoc-cv::Point(m, n))<r)
+                    {
+                        I1(n, m) = 0;
+                    }
                 }
             }
-            pt(iRow, iCol)[0] = std::round(x.x);
-            pt(iRow, iCol)[1] = std::round(x.y);
+        }
+
+        // sort peaks
+        for (int iRow = 0; iRow < nCrystal; ++iRow)
+        {
+            // 选出 y 值较小的 nCrystal 个点作为一行， y值升序排列
+            std::sort(peaks.begin(), peaks.end(),
+                      [](const cv::Point& p1, const cv::Point& p2){return p1.y < p2.y;});
+
+            QVector<cv::Point> rowPeaks(peaks.begin(), peaks.begin()+nCrystal);
+            // 将他们按 x 值升序排列
+            std::sort(rowPeaks.begin(), rowPeaks.end(),
+                      [](const cv::Point& p1, const cv::Point& p2){return p1.x < p2.x;});
+
+            for (int iCol = 0; iCol < nCrystal; ++iCol)
+            {
+                peaks.pop_front();
+                pt(iRow, iCol)[0] = rowPeaks[iCol].x;
+                pt(iRow, iCol)[1] = rowPeaks[iCol].y;
+            }
         }
     }
-    LogOut("第二次平均值移动迭代。所有峰位寻找完成。");
+
     ShowPeaks(I0, pt);
 }
 
@@ -838,7 +721,7 @@ void MainWindow::on_pushButton_genPositionLUT_clicked()
 
 void MainWindow::on_pushButton_genEnergyLUT_clicked()
 {
-    float peakE = ui->lineEdit_peakEnergy->text().toDouble();
+    double peakE = ui->lineEdit_peakEnergy->text().toDouble();
 
     QFile outFile(fName_LUT_E);
     if(!outFile.open(QIODevice::WriteOnly))
@@ -901,7 +784,7 @@ void MainWindow::on_pushButton_genEnergyLUT_clicked()
             }
             QDataStream outEHist(&eHist_outFile);
 
-            m_peaks.clear();
+            m_slopes.clear();
             for (int i = 0; i < crystalNum; ++i)
             {
                 auto h0 = m_eHists[i];
@@ -920,15 +803,12 @@ void MainWindow::on_pushButton_genEnergyLUT_clicked()
                 }
 
                 int idx = std::max_element(h2.begin(), h2.end()) - h2.begin();
-                m_peaks.push_back(quint16(ADCs[idx]));
+                double aSlope = peakE/ADCs[idx];
+                m_slopes.push_back(aSlope);
+                outStream << aSlope;
             }
 
             eHist_outFile.close();
-
-            for (const auto& value : m_peaks)
-            {
-                outStream << float(peakE/value);
-            }
         }
     }
 
@@ -942,7 +822,6 @@ void MainWindow::on_pushButton_calPeaks_clicked()
     // 调取能谱数据，查看单根晶体刻度过程中，自动寻峰结果是否完全正确
     // 如果不正确可以修改，并重新生成能量查找表
     imgFlag = 1;
-    float peakE = ui->lineEdit_peakEnergy->text().toDouble();
 
     // 打开[CMID, BKID]指定的 BK 的能谱文件
     QString CMID = ui->lineEdit_CMID->text();
@@ -984,12 +863,12 @@ void MainWindow::on_pushButton_calPeaks_clicked()
     if(infile.open(QIODevice::ReadOnly))
     {
         QDataStream in(&infile);
-        m_peaks.clear();
+        m_slopes.clear();
         for (int i = 0; i < crystalNum; ++i)
         {
             float slope;
             in >> slope;
-            m_peaks.append(std::round(peakE/slope));
+            m_slopes.append(slope);
         }
         infile.close();
     }
@@ -1005,13 +884,15 @@ void MainWindow::on_pushButton_calPeaks_clicked()
 
 void MainWindow::ShowEHist(int peakLoc)
 {
+    double peakE = ui->lineEdit_peakEnergy->text().toDouble();
+
     int m = ui->lineEdit_colID->text().toInt();
     int n = ui->lineEdit_rowID->text().toInt();
     int crystalID = n*nCrystal + m;
 
     QVector<quint16> h0 = m_eHists[crystalID];
 
-    int x = m_peaks[crystalID];
+    int x = int(peakE/m_slopes[crystalID]);
     float y = *std::max_element(h0.begin(), h0.end());
 
     QVector<QPointF> points;
@@ -1183,8 +1064,8 @@ void MainWindow::on_label_floodmap_mouseLeftClicked()
         int rowID = ui->lineEdit_rowID->text().toInt();
         int colID = ui->lineEdit_colID->text().toInt();
         int crystalID = rowID*nCrystal + colID;
-
-        m_peaks[crystalID] = peakLoc;
+        double peakE = ui->lineEdit_peakEnergy->text().toDouble();
+        m_slopes[crystalID] = peakE/peakLoc;
         ShowEHist(peakLoc);
     }
 }
@@ -1400,34 +1281,26 @@ void MainWindow::on_pushButton_calSegFOM_clicked()
 template<typename T>
 QVector<float> MainWindow::Smooth(const QVector<T>& data, int window)
 {
-    QVector<float> smoothedData;
-
-    for (int i = 0; i < data.size(); ++i)
+    // 将 std::vector 转换为 cv::Mat
+    cv::Mat dataMat(1, data.size(), CV_32F);
+    for (size_t i = 0; i < data.size(); ++i)
     {
-        float sum = 0.0;
-        int counter = 0;
-
-        // 计算窗口范围内的数据点的和
-        int start = std::max(0, i - window + 1);
-        int stop = std::min(i, static_cast<int>(data.size())-1);
-        for (int j = start; j <= stop; ++j)
-        {
-            sum += data[j];
-            counter++;
-        }
-
-        // 计算平均值并添加到平滑数据中
-        smoothedData.push_back(sum / counter);
+        dataMat.at<float>(0, i) = data[i];
     }
 
+    // 使用 OpenCV 的平滑函数对数据进行平滑处理
+    cv::Mat smoothedDataMat;
+    cv::blur(dataMat, smoothedDataMat, cv::Size(window, 1));
+
+    // 将平滑后的数据转换为 std::vector
+    QVector<float> smoothedData(smoothedDataMat.begin<float>(),
+                                smoothedDataMat.end<float>());
     return smoothedData;
 }
 
 
 void MainWindow::on_pushButton_writePeaks_clicked()
 {
-    float peakE = ui->lineEdit_peakEnergy->text().toDouble();
-
     QFile file(fName_LUT_E);
     if (!file.open(QIODevice::WriteOnly))
     {
@@ -1436,9 +1309,9 @@ void MainWindow::on_pushButton_writePeaks_clicked()
     }
 
     QDataStream out(&file);
-    for (const auto& var : m_peaks)
+    for (const auto& var : m_slopes)
     {
-        out << peakE/var;
+        out << var;
     }
     file.close();
 }
@@ -1727,3 +1600,129 @@ void MainWindow::LogOut(QString str)
     *logOutStream << s1 << Qt::endl;
     qDebug() << s1;
 }
+
+
+void MainWindow::ReadinParFile(QString fName)
+{
+    QString fullName = currentPath + fName;
+    QFile file(fullName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        LogOut("unopen parameter file!");
+        return;
+    }
+
+    QTextStream in(&file);
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+
+        if(line.isEmpty() || line.startsWith("#"))
+        {
+            continue;
+        }
+
+        if(line.contains("#"))
+        {
+            QStringList ss = line.split("#");
+            line = ss[0];
+        }
+
+        // 去除首尾空格，并按等号进行分割
+        QStringList parts = line.simplified().split("=");
+
+        if (2 == parts.size())
+        {
+            QString key = parts[0].trimmed(); // 去除键的首尾空格
+            QString value = parts[1].trimmed(); // 去除值的首尾空格
+            pars[key] = value;
+            //qDebug() << "Key:" << key << ", Value:" << value;
+        }
+        else
+        {
+            qDebug() << "Invalid format!";
+        }
+    }
+}
+
+
+void MainWindow::UpdateProgressBar(int pos)
+{
+    ui->progressBar_readinData->setValue(pos);
+}
+
+
+void MainWindow::ReStoreData()
+{
+    m_xList.clear();
+    m_yList.clear();
+    m_eList.clear();
+
+    auto data = dataObject->GetData();
+
+    int nEvts = data[0].size();
+    for (int i = 0; i < nEvts; ++i)
+    {
+        quint16 x = data[0][i];
+        quint16 y = data[1][i];
+        quint16 e = data[2][i];
+
+        quint16 xx = std::round(factor*x/e*nPixel) - bias;
+        quint16 yy = std::round(factor*y/e*nPixel) - bias;
+
+        if(0<xx && xx<nPixel && 0<yy && yy<nPixel && 0<e && e<maxADC)
+        {
+            m_xList.append(xx);
+            m_yList.append(yy);
+            m_eList.append(e);
+        }
+
+    }
+
+    // 保存数据
+    QString fName = currentPath + "Data/data_CM0_BK0.bin";
+    QFile ofile(fName);
+    if (ofile.open(QIODevice::WriteOnly))
+    {
+        QDataStream out(&ofile);
+        for (int i = 0; i < m_eList.size(); ++i)
+        {
+            out << m_xList[i] << m_yList[i] << m_eList[i];
+        }
+        ofile.close();
+    }
+    else
+    {
+        LogOut("Readout file fail to create.");
+        return;
+    }
+
+    LogOut("按 BK 保存文件完成。");
+
+
+    /******************************************************
+    //保存数据
+    for (int iFile = 0; iFile<data.size(); ++iFile)
+    {
+        int CMID = iFile/nBK;
+        int BKID = iFile%nBK;
+
+        QString outFileName =
+            QString("./Data/data_CM%1_BK%2.bin").arg(CMID).arg(BKID);
+        QFile outFile(outFileName);
+
+        if (outFile.open(QIODevice::WriteOnly))
+        {
+            // 创建数据流
+            QDataStream out(&outFile);
+            foreach (auto var, data[iFile])
+            {
+                out << var;
+            }
+            // out << data[iFile];
+            outFile.close();
+        }
+    }
+    ***************************************************/
+}
+

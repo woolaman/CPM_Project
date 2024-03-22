@@ -8,9 +8,10 @@
 #include <QValueAxis>
 #include <QVector>
 
-//#include "opencv2/opencv.hpp"
 #include "opencv2/core/mat.hpp"
-//#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/highgui/highgui.hpp"
+
+#include "Readin.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -26,42 +27,6 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    const int nCM = 1;
-    const int nBK = 1;
-    const int nPixel = 512;
-    const int nCrystal = 14; // 26
-    const int num1 = 7; // nCrystal = num1 * num2
-    const int num2 = 2;
-    const int crystalNum = nCrystal*nCrystal;
-
-    const float factor = 1.06f; // 调整点阵大小
-    const int bias = 58;  // 调整点阵位置
-
-    const int xmin = 126;  // choose central area to analysis
-    const int xmax = 383;
-    const int ymin = 132;
-    const int ymax = 383;
-    //const int xmin = 0;  // choose central area to analysis
-    //const int xmax = 512;
-    //const int ymin = 0;
-    //const int ymax = 512;
-
-    const float EW_width = 0.25;
-
-    const int minADC = 0;
-    const int maxADC = 60000; // ADC channel value
-    const int ADC_nBins = 600;
-    const int ADC_binWidth = (maxADC-minADC)/ADC_nBins;
-    const int ADC_cutValue = 15000;
-    //将小于该值的bin置为0，防止寻峰错误
-
-    const int minRecE = 0;
-    const int maxRecE = 1600; // keV
-    const int recE_nBins = 400;
-    const int recE_binWidth = (maxRecE-minRecE)/recE_nBins;
-    const int recE_cutValue = 200;
-    //将小于该值的bin置为0，防止寻峰错误
-
     cv::Mat GetColorMap(cv::Mat_<float> I);
     void ShowImage(cv::Mat_<float> I);
     void ShowPeaks(cv::Mat_<float> I, cv::Mat_<cv::Vec2w> pt);
@@ -76,6 +41,8 @@ public:
 
     template<typename T>
     QVector<float> Smooth(const QVector<T>& data, int window=10);
+
+    void ReadinParFile(QString fName="cpm_config.par");
 
 
 private slots:
@@ -102,9 +69,14 @@ private slots:
     void on_lineEdit_minEW_editingFinished();
     void on_lineEdit_maxEW_editingFinished();
 
+    void UpdateProgressBar(int pos);
+    void ReStoreData();
+
 
 private:
     Ui::MainWindow* ui;
+
+    Readin* dataObject;
 
     //oooooooOOOOOOOOOoooooooooooo // 原始数据
     QVector<quint16> m_xList;
@@ -124,7 +96,7 @@ private:
 
     float m_peakValue;
     QVector< QVector<quint16> > m_eHists;
-    QVector<quint16> m_peaks;
+    QVector<double> m_slopes;
     //oooooooOOOOOOOOOoooooooooooo
 
     //oooooooOOOOOOOOOoooooooooooo // 分割相关
@@ -145,6 +117,40 @@ private:
 
     QVector<float> ADCs;
     QVector<float> recEs;
+
+    QMap<QString, QString> pars;
+    int nCM;
+    int nBK;
+    int nPixel;
+    int nCrystal;
+    int num1; // nCrystal = num1 * num2
+    int num2;
+    int crystalNum;
+
+    float factor; // 调整点阵大小
+    int bias;  // 调整点阵位置
+
+    // choose central area to analysis
+    int xmin; //int xmin = 0;
+    int xmax; //int xmax = 512;
+    int ymin; //int ymin = 0;
+    int ymax; //int ymax = 512;
+
+    QString segmentMethod;
+
+    float EW_width;
+
+    int minADC;
+    int maxADC; // ADC channel value
+    int ADC_nBins;
+    int ADC_binWidth;
+    int ADC_cutValue; // 将小于该值的bin置为0，防止寻峰错误
+
+    int minRecE;
+    int maxRecE; // keV
+    int recE_nBins;
+    int recE_binWidth;
+    int recE_cutValue; // 将小于该值的bin置为0，防止寻峰错误
 };
 
 #endif // MAINWINDOW_H

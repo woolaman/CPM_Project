@@ -18,25 +18,27 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 set(PROJECT_SOURCES
     main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
-    eHistLabel.h
-    eHistLabel.cpp
-    floodmapLabel.h
-    floodmapLabel.cpp
-    histogram.h
-    histogram.cpp
-    floodmap.h
-    floodmap.cpp
-    crystal.h
-    crystal.cpp
-    block.h
-    block.cpp
-    module.h
-    module.cpp
-    petRing.h
-    petRing.cpp
+    Mainwindow.cpp
+    Mainwindow.h
+    Mainwindow.ui
+    LabelHistogram.h
+    LabelHistogram.cpp
+    LabelFloodmap.h
+    LabelFloodmap.cpp
+    Histogram.h
+    Histogram.cpp
+    Floodmap.h
+    Floodmap.cpp
+    Crystal.h
+    Crystal.cpp
+    Block.h
+    Block.cpp
+    Module.h
+    Module.cpp
+    PETRing.h
+    PETRing.cpp
+    Readin.h
+    Readin.cpp
 )
 
 qt_add_executable(CPM

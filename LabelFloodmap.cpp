@@ -1,26 +1,26 @@
-#include "floodmapLabel.h"
+#include "LabelFloodmap.h"
 
 
-floodmapLabel::floodmapLabel(QWidget *parent)
+LabelFloodmap::LabelFloodmap(QWidget *parent)
     : QLabel(parent)
 {
 
 }
 
 
-floodmapLabel::~floodmapLabel()
+LabelFloodmap::~LabelFloodmap()
 {
 
 }
 
 
-QPoint floodmapLabel::GetPos()
+QPoint LabelFloodmap::GetPos()
 {
     return m_pos;
 }
 
 
-void floodmapLabel::mousePressEvent(QMouseEvent *event)
+void LabelFloodmap::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
     {
