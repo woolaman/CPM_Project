@@ -7,17 +7,18 @@
 Histogram::Histogram() { }
 
 
-Histogram::Histogram(double xmin, double xmax, int nBins)
-{   m_xmin = xmin;
+Histogram::Histogram(qreal xmin, qreal xmax, int nBins)
+{
+    m_xmin = xmin;
     m_xmax = xmax;
     m_nBins = nBins;
 
     m_binWidth = (m_xmax-m_xmin)/m_nBins;
-    m_binContents = QVector<double>(m_nBins, 0);
-    m_binCenters = QVector<double>(m_nBins, 0);
+    m_binContents = QVector<qreal>(m_nBins, 0);
+    m_binCenters = QVector<qreal>(m_nBins, 0);
     for (int i = 0; i < m_nBins; ++i)
     {
-        m_binCenters[i] = i*m_binWidth + m_binWidth/2;
+        m_binCenters[i] = m_xmin + i*m_binWidth + m_binWidth/2;
     }
 }
 
@@ -28,7 +29,7 @@ Histogram::~Histogram() { }
 template<typename T>
 void Histogram::Fill(T& value)
 {
-    int idx = std::floor(value/m_binWidth);
+    int idx = qFloor( (value-m_xmin)/m_binWidth );
     m_binContents[idx]++;
 }
 
@@ -38,36 +39,37 @@ void Histogram::Fill(QVector<T>& vec)
 {
     for (const auto& var : vec)
     {
-        int idx = std::floor(var/m_binWidth);
+        int idx = qFloor( (var-m_xmin)/m_binWidth );
         m_binContents[idx]++;
     }
 }
 
 
-double Histogram::GetBinWidth()
+qreal Histogram::GetBinWidth()
 {
     return m_binWidth;
 }
 
 
-double Histogram::GetBinContent(int iBin)
+qreal Histogram::GetBinContent(int iBin)
 {
     return m_binContents[iBin];
 }
 
 
-QVector<double> Histogram::GetBinContents()
+QVector<qreal> Histogram::GetBinContents()
 {
     return m_binContents;
 }
 
 
-double Histogram::GetBinCenter(int iBin)
+qreal Histogram::GetBinCenter(int iBin)
 {
     return m_binCenters[iBin];
 }
 
-QVector<double> Histogram::GetBinCenters()
+
+QVector<qreal> Histogram::GetBinCenters()
 {
     return m_binCenters;
 }
@@ -76,21 +78,21 @@ QVector<double> Histogram::GetBinCenters()
 void Histogram::Smooth(int windowSize=10)
 {
 	// 将 std::vector 转换为 cv::Mat
-    QVector<int> data;
-    cv::Mat dataMat(1, data.size(), CV_32F);
-    for (size_t i = 0; i < data.size(); ++i)
+    cv::Mat_<qreal> data0(1, m_nBins);
+    for (int i = 0; i < m_nBins; ++i)
     {
-        dataMat.at<float>(0, i) = data[i];
+        data0(0, i) = m_binContents[i];
     }
 
     // 使用 OpenCV 的平滑函数对数据进行平滑处理
-    cv::Mat smoothedDataMat;
-    cv::blur(dataMat, smoothedDataMat, cv::Size(windowSize, 1));
+    cv::Mat_<qreal> data1;
+    cv::blur(data0, data1, cv::Size(windowSize, 1));
 
-    // 将平滑后的数据转换为 std::vector
-    QVector<float> smoothedData(smoothedDataMat.begin<float>(),
-                                smoothedDataMat.end<float>());
-    // smoothedData;
+    // 将平滑后的数据返回给 m_binContents
+    for (int i = 0; i < m_nBins; ++i)
+    {
+        m_binContents[i] = data1(0, i);
+    }
 }
 
 
@@ -100,5 +102,51 @@ void Histogram::Smooth(int windowSize, int times)
     {
         Smooth(windowSize);
     }
+}
+
+
+void Histogram::SetCutValue(qreal value)
+{
+    m_cutValue = value;
+}
+
+
+QPointF Histogram::GetPeak()
+{
+    int cutIdx = qRound((m_cutValue-m_xmin)/m_binWidth);
+    int peakIdx = std::max_element(m_binContents.begin()+cutIdx,
+                                   m_binContents.end()) - m_binContents.begin();
+    qreal x = m_binCenters[peakIdx];
+    qreal y = m_binContents[peakIdx];
+    return QPointF(x, y);
+}
+
+
+qreal Histogram::GetResolution()
+{
+    int cutIdx = qRound((m_cutValue-m_xmin)/m_binWidth);
+    int peakIdx = std::max_element(m_binContents.begin()+cutIdx,
+                                   m_binContents.end()) - m_binContents.begin();
+    qreal peak_x = m_binCenters[peakIdx];
+    qreal peak_y = m_binContents[peakIdx];
+
+    qreal halfMax = peak_y/2;
+    int leftIdx = peakIdx;
+    int rightIdx = peakIdx;
+
+    while (leftIdx>0 && m_binContents[leftIdx]>halfMax)
+    {
+        leftIdx--;
+    }
+
+    while (rightIdx<m_nBins-1 && m_binContents[rightIdx]>halfMax)
+    {
+        rightIdx++;
+    }
+
+    qreal leftValue = m_binCenters[leftIdx];
+    qreal rightValue = m_binCenters[rightIdx];
+    qreal FWHM = rightValue - leftValue; // 半高宽
+    return FWHM/peak_x;
 }
 

@@ -15,15 +15,15 @@ public:
 
 
     void SetCrysatlN(int n);
-    void SetMap(cv::Mat_<float> I);
+    void SetMap(cv::Mat_<qreal> I);
 
     void Fill(int x, int y);
 
 
 private:
-    const int nPixel = 512;
+    int nPixel = 512;
     int m_nCrystal;
-    cv::Mat_<float> I0;
+    cv::Mat_<qreal> I0;
     cv::Mat_<quint16> m_segr;
 
 };

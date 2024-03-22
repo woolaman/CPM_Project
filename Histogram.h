@@ -9,37 +9,40 @@ class Histogram
 {
 public:
     Histogram();
-    Histogram(double xmin, double xmax, int nBins);
+    Histogram(qreal xmin, qreal xmax, int nBins);
     ~Histogram();
 
     template<typename T> void Fill(T& value);
     template<typename T> void Fill(QVector<T>& vec);
 
-    double GetBinWidth();
+    qreal GetBinWidth();
 
-    double GetBinContent(int iBin);
-    QVector<double> GetBinContents();
+    qreal GetBinContent(int iBin);
+    QVector<qreal> GetBinContents();
 
-    double GetBinCenter(int iBin);
-    QVector<double> GetBinCenters();
-
-    QPointF GetPeak();
-    double GetResolution();
+    qreal GetBinCenter(int iBin);
+    QVector<qreal> GetBinCenters();
 
     void Smooth(int windowSize);
     void Smooth(int windowSize, int times);
-    // void Smooth(QString method, int par1, int par2);
+
+    void SetCutValue(qreal value);
+    QPointF GetPeak();
+    qreal GetResolution();
 
 
 private:
-    double m_xmin;
-    double m_xmax;
+    qreal m_xmin;
+    qreal m_xmax;
 
     int m_nBins;
-    double m_binWidth;
+    qreal m_binWidth;
 
-    QVector<double> m_binContents;
-    QVector<double> m_binCenters;
+    // < m_cutValue, bin heiht = 0, using it in finding peak
+    qreal m_cutValue;
+
+    QVector<qreal> m_binContents;
+    QVector<qreal> m_binCenters;
 };
 
 #endif // HISTOGRAM_H
