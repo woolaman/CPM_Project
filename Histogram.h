@@ -3,7 +3,7 @@
 
 #include <QPointF>
 #include <QVector>
-
+#include "Parameters.h"
 
 class Histogram
 {
@@ -12,8 +12,8 @@ public:
     Histogram(qreal xmin, qreal xmax, int nBins);
     ~Histogram();
 
-    template<typename T> void Fill(T& value);
-    template<typename T> void Fill(QVector<T>& vec);
+    void Fill(int value);
+    void Fill(QVector<int> vec);
 
     qreal GetBinWidth();
 
@@ -23,6 +23,9 @@ public:
     qreal GetBinCenter(int iBin);
     QVector<qreal> GetBinCenters();
 
+    void SetBinContent(int iBin, qreal value);
+    void SetBinContents(QVector<qreal>& vec);
+
     void Smooth(int windowSize);
     void Smooth(int windowSize, int times);
 
@@ -30,6 +33,10 @@ public:
     QPointF GetPeak();
     qreal GetResolution();
 
+    void Add(Histogram& aHist);
+    // 重载相加操作符为成员函数
+    Histogram operator+(const Histogram& b);
+    Histogram& operator+=(const Histogram& b);
 
 private:
     qreal m_xmin;

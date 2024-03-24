@@ -27,8 +27,6 @@ set(PROJECT_SOURCES
     LabelFloodmap.cpp
     Histogram.h
     Histogram.cpp
-    Floodmap.h
-    Floodmap.cpp
     Crystal.h
     Crystal.cpp
     Block.h
@@ -39,6 +37,7 @@ set(PROJECT_SOURCES
     PETRing.cpp
     Readin.h
     Readin.cpp
+    Parameters.h
 )
 
 qt_add_executable(CPM

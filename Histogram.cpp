@@ -3,6 +3,8 @@
 #include "opencv2/core/mat.hpp"
 #include "opencv2/imgproc.hpp"
 
+#include <QtMath>
+
 
 Histogram::Histogram() { }
 
@@ -26,18 +28,16 @@ Histogram::Histogram(qreal xmin, qreal xmax, int nBins)
 Histogram::~Histogram() { }
 
 
-template<typename T>
-void Histogram::Fill(T& value)
+void Histogram::Fill(int value)
 {
     int idx = qFloor( (value-m_xmin)/m_binWidth );
     m_binContents[idx]++;
 }
 
 
-template<typename T>
-void Histogram::Fill(QVector<T>& vec)
+void Histogram::Fill(QVector<int> vec)
 {
-    for (const auto& var : vec)
+    for (auto var : vec)
     {
         int idx = qFloor( (var-m_xmin)/m_binWidth );
         m_binContents[idx]++;
@@ -72,6 +72,21 @@ qreal Histogram::GetBinCenter(int iBin)
 QVector<qreal> Histogram::GetBinCenters()
 {
     return m_binCenters;
+}
+
+
+void Histogram::SetBinContent(int iBin, qreal value)
+{
+    m_binContents[iBin] = value;
+}
+
+
+void Histogram::SetBinContents(QVector<qreal>& vec)
+{
+    for (int i = 0; i < m_nBins; ++i)
+    {
+        m_binContents[i] = vec[i];
+    }
 }
 
 
@@ -148,5 +163,36 @@ qreal Histogram::GetResolution()
     qreal rightValue = m_binCenters[rightIdx];
     qreal FWHM = rightValue - leftValue; // 半高宽
     return FWHM/peak_x;
+}
+
+
+void Histogram::Add(Histogram& aHist)
+{
+    for (int i = 0; i < m_nBins; ++i)
+    {
+        m_binContents[i] += aHist.GetBinContent(i);
+    }
+}
+
+
+Histogram Histogram::operator+(const Histogram& b)
+{
+    Histogram c(this->m_xmin, this->m_xmax, this->m_nBins);
+    for (int i = 0; i < this->m_nBins; ++i)
+    {
+        c.SetBinContent(i, this->m_binContents[i] + b.m_binContents[i]);
+    }
+
+    return c;
+}
+
+
+Histogram& Histogram::operator+=(const Histogram& b)
+{
+    for (int i = 0; i < m_nBins; ++i)
+    {
+        m_binContents[i] += b.m_binContents[i];
+    }
+    return *this;
 }
 
