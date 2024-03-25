@@ -1,19 +1,18 @@
-#ifndef HISTOGRAM_H
+﻿#ifndef HISTOGRAM_H
 #define HISTOGRAM_H
 
 #include <QPointF>
 #include <QVector>
-#include "Parameters.h"
+
 
 class Histogram
 {
 public:
     Histogram();
-    Histogram(qreal xmin, qreal xmax, int nBins);
+    Histogram(qreal aXmin, qreal aXmax, int nBins);
     ~Histogram();
 
-    void Fill(int value);
-    void Fill(QVector<int> vec);
+    void Fill(qreal value);
 
     qreal GetBinWidth();
 
@@ -26,7 +25,7 @@ public:
     void SetBinContent(int iBin, qreal value);
     void SetBinContents(QVector<qreal>& vec);
 
-    void Smooth(int windowSize);
+    void Smooth(int windowSize=10);
     void Smooth(int windowSize, int times);
 
     void SetCutValue(qreal value);
@@ -34,9 +33,9 @@ public:
     qreal GetResolution();
 
     void Add(Histogram& aHist);
-    // 重载相加操作符为成员函数
-    Histogram operator+(const Histogram& b);
-    Histogram& operator+=(const Histogram& b);
+
+    qreal GetLeftValue(){return m_leftValue;}
+    qreal GetRightValue(){return m_rightValue;}
 
 private:
     qreal m_xmin;
@@ -50,6 +49,9 @@ private:
 
     QVector<qreal> m_binContents;
     QVector<qreal> m_binCenters;
+
+    qreal m_leftValue;
+    qreal m_rightValue;
 };
 
 #endif // HISTOGRAM_H

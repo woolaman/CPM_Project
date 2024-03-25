@@ -1,4 +1,4 @@
-#include "Readin.h"
+﻿#include "Readin.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -25,18 +25,13 @@ Readin::Readin(QString fName, int CMN, int BKN)
 Readin::~Readin() {}
 
 
-void Readin::SetFilePath(QString fName)
-{
-    m_fileName = fName;
-}
-
-
 void Readin::StartReadTxt()
 {
     m_data = QVector< QVector<quint16> >(3);
 
     if (!QFile::exists(m_fileName)) // 检查文件是否存在
     {
+        qDebug() << "file name is " << m_fileName;
         qDebug() << "Fail to open file, please check file.";
         return;
     }
@@ -51,6 +46,7 @@ void Readin::StartReadTxt()
     quint64 fileSize = file.size(); // 获取文件大小，用于计算进度
 
     QTextStream in(&file);
+    int prePos = 0;
     while (!in.atEnd())
     {
         QString line = in.readLine();
@@ -68,11 +64,11 @@ void Readin::StartReadTxt()
             continue;
         }
 
-        double p1 = 100.0*file.pos()/fileSize;
-        int p2 = qRound(p1);
-        if(qFabs(p1-p2)<1.e-5)
+        int pos = qRound(100.0*file.pos()/fileSize);
+        if(pos>prePos)
         {
-            emit currentPos(p2);
+            emit currentPos(pos);
+            prePos = pos;
         }
     }
     file.close();

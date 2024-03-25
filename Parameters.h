@@ -1,4 +1,4 @@
-#ifndef PARAMETERS_H
+﻿#ifndef PARAMETERS_H
 #define PARAMETERS_H
 
 #include <QString>
@@ -37,5 +37,7 @@ extern QString currentPath;
 extern QString fName_LUT_P;
 extern QString fName_LUT_E;
 extern QString fName_LUT_U;
+
+extern int peakE;
 
 #endif // PARAMETERS_H

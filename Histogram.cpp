@@ -1,18 +1,18 @@
-#include "Histogram.h"
+﻿#include "Histogram.h"
 
 #include "opencv2/core/mat.hpp"
 #include "opencv2/imgproc.hpp"
 
 #include <QtMath>
-
+#include <QDebug>
 
 Histogram::Histogram() { }
 
 
-Histogram::Histogram(qreal xmin, qreal xmax, int nBins)
+Histogram::Histogram(qreal aXmin, qreal aXmax, int nBins)
 {
-    m_xmin = xmin;
-    m_xmax = xmax;
+    m_xmin = aXmin;
+    m_xmax = aXmax;
     m_nBins = nBins;
 
     m_binWidth = (m_xmax-m_xmin)/m_nBins;
@@ -28,20 +28,20 @@ Histogram::Histogram(qreal xmin, qreal xmax, int nBins)
 Histogram::~Histogram() { }
 
 
-void Histogram::Fill(int value)
+void Histogram::Fill(qreal value)
 {
     int idx = qFloor( (value-m_xmin)/m_binWidth );
-    m_binContents[idx]++;
-}
 
-
-void Histogram::Fill(QVector<int> vec)
-{
-    for (auto var : vec)
+    if(idx<0 || idx>m_nBins)
     {
-        int idx = qFloor( (var-m_xmin)/m_binWidth );
-        m_binContents[idx]++;
+        qDebug() << "idx = " << idx;
+        qDebug() << "value = " << value;
+
+        qDebug() << "m_xmin = " << m_xmin << ", m_binWith = " << m_binWidth;
+        return;
     }
+
+    m_binContents[idx] += 1;
 }
 
 
@@ -90,9 +90,9 @@ void Histogram::SetBinContents(QVector<qreal>& vec)
 }
 
 
-void Histogram::Smooth(int windowSize=10)
+void Histogram::Smooth(int windowSize)
 {
-	// 将 std::vector 转换为 cv::Mat
+    // 将 std::vector 转换为 cv::Mat
     cv::Mat_<qreal> data0(1, m_nBins);
     for (int i = 0; i < m_nBins; ++i)
     {
@@ -159,9 +159,9 @@ qreal Histogram::GetResolution()
         rightIdx++;
     }
 
-    qreal leftValue = m_binCenters[leftIdx];
-    qreal rightValue = m_binCenters[rightIdx];
-    qreal FWHM = rightValue - leftValue; // 半高宽
+    m_leftValue = m_binCenters[leftIdx];
+    m_rightValue = m_binCenters[rightIdx];
+    qreal FWHM = m_rightValue - m_leftValue; // 半高宽
     return FWHM/peak_x;
 }
 
@@ -172,27 +172,5 @@ void Histogram::Add(Histogram& aHist)
     {
         m_binContents[i] += aHist.GetBinContent(i);
     }
-}
-
-
-Histogram Histogram::operator+(const Histogram& b)
-{
-    Histogram c(this->m_xmin, this->m_xmax, this->m_nBins);
-    for (int i = 0; i < this->m_nBins; ++i)
-    {
-        c.SetBinContent(i, this->m_binContents[i] + b.m_binContents[i]);
-    }
-
-    return c;
-}
-
-
-Histogram& Histogram::operator+=(const Histogram& b)
-{
-    for (int i = 0; i < m_nBins; ++i)
-    {
-        m_binContents[i] += b.m_binContents[i];
-    }
-    return *this;
 }
 

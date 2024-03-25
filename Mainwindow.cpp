@@ -12,7 +12,6 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "Readin.h"
 #include "Parameters.h"
 
 
@@ -42,7 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     for (int i = 0; i < ADC_nBins; ++i)
     {
-        eHistLine->append(m_BK->GetADCHist().GetBinCenter(i), 0);
+        qreal x = ADC_min + i*ADC_binWidth + ADC_binWidth/2;
+        eHistLine->append(x, 0);
     }
 
     EWLeftLine = new QLineSeries();
@@ -103,7 +103,7 @@ MainWindow::MainWindow(QWidget *parent)
     QPixmap pixmap = chartView->grab();
     ui->label_eHist->setPixmap(pixmap);
 
-    ShowImage(m_BK->GetMap());
+    ShowImage(cv::Mat::zeros(nPixel, nPixel, CV_16UC1));
     LogOut("初始化完成。");
 }
 
@@ -120,7 +120,7 @@ MainWindow::~MainWindow()
     delete chart;
     delete chartView;
 
-    delete dataObject;
+    //delete dataObject;
 
     LogOut("程序关闭。");
 
@@ -206,32 +206,38 @@ void MainWindow::on_pushButton_readinData_clicked()
     LogOut("开始读入数据...");
     QString fName = ui->lineEdit_dataPath->text();
     fName.replace("\\", "/");
+    qDebug() << "fName = " << fName;
+
+    ui->progressBar_readinData->setMinimum(0);
+    ui->progressBar_readinData->setMaximum(100);
+    ui->progressBar_readinData->setValue(0);
+
     dataObject = new Readin(fName);
 
     QThread* thread = new QThread(); // 创建新线程
     dataObject->moveToThread(thread);
 
-    QObject::connect(dataObject, SIGNAL(currentPos(int)),
-                     this, SLOT(UpdateProgressBar(int)));
-    QObject::connect(dataObject, SIGNAL(finished()), this, SLOT(ReStoreData));
+    // 连接 Worker 对象的工作完成信号到线程的退出槽
+    // QObject::connect(&worker, &Worker::workFinished, &thread, &QThread::quit);
+
+    // 连接线程的启动信号到 Worker 对象的工作槽
+    QObject::connect(thread, &QThread::started, dataObject, &Readin::StartReadTxt);
+
+    QObject::connect(dataObject, SIGNAL(currentPos(int)),  this, SLOT(UpdateProgressBar(int)));
+    QObject::connect(dataObject, SIGNAL(finished()), this, SLOT(ReStoreData()));
+
+    // 当线程结束时，删除 Worker 对象和线程对象
+    //QObject::connect(&thread, &QThread::finished, &worker, &QObject::deleteLater);
+    //QObject::connect(&thread, &QThread::finished, &thread, &QObject::deleteLater);
 
     // 启动新线程
     thread->start();
-
-    dataObject->StartReadTxt();
-    // dataObject->StartReadBin();
 }
 
 
 void MainWindow::on_pushButton_setEW_clicked()
 {
-    /*******************************************
-    // 按照 CMID 和 BKID 读入某一个 BK 的数据
-    QString CMID = ui->lineEdit_CMID->text();
-    QString BKID = ui->lineEdit_BKID->text();
-
-    QString fName = currentPath + "Data/data_CM" + CMID +
-                    "_BK" + BKID + ".bin";
+    QString fName = currentPath + "Data/data.bin";
     if (!QFile::exists(fName))
     {
         LogOut("文件不存在，请检查文件是否存在。");
@@ -249,6 +255,7 @@ void MainWindow::on_pushButton_setEW_clicked()
         while (!in.atEnd())
         {
             in >> x >> y >> e;
+            m_BK->Fill(x, y, e);
         }
         file.close();
     }
@@ -257,7 +264,6 @@ void MainWindow::on_pushButton_setEW_clicked()
         LogOut("文件打开失败，请检查文件是否正确。");
         return;
     }
-    ******************************************/
 
     Histogram ADCHist = m_BK->GetADCHist();
 
@@ -275,8 +281,8 @@ void MainWindow::on_pushButton_setEW_clicked()
 
     eHistLine->replace(points);
 
-    qreal minEW = peak_x*(1-EW_width);
-    qreal maxEW = peak_x*(1+EW_width);
+    int minEW = qRound(peak_x*(1-EW_width));
+    int maxEW = qRound(peak_x*(1+EW_width));
 
     axisX->setRange(0, ADC_max);
     axisY->setRange(0, m_peakValue*1.1);
@@ -295,9 +301,12 @@ void MainWindow::on_pushButton_setEW_clicked()
     LogOut("画出整个BK能谱，并自动生成峰值左右各25%能窗参数。");
 
     // 参照能窗的设置参数，筛选数据
-    m_BK->CalMap(minEW, maxEW);
+    m_BK->SetEW(minEW, maxEW);
+    m_BK->CalMap();
     ShowImage(m_BK->GetMap());
-    //LogOut("Generate I0. ");
+    LogOut("Generate I0. ");
+
+    peakE = ui->lineEdit_peakEnergy->text().toInt();
 
     //cv::Mat color_I0 = GetColorMap(I0);
     //cv::namedWindow("I0", cv::WINDOW_NORMAL); // cv::WINDOW_AUTOSIZE
@@ -309,7 +318,7 @@ void MainWindow::on_pushButton_segment_clicked()
 {
     LogOut("开始分割...");
     imgFlag = 0;
-    m_BK->Segment("SVD");
+    m_BK->Segment("FindMaximum");
     ShowPeaks(m_BK->GetMap(), m_BK->GetPeakTable());
 }
 
@@ -323,6 +332,8 @@ void MainWindow::on_pushButton_genPositionLUT_clicked()
 
 void MainWindow::on_pushButton_genEnergyLUT_clicked()
 {
+
+    m_BK->CalRecEHist();
     m_BK->GenEnergyLUT();
 }
 
@@ -332,20 +343,27 @@ void MainWindow::on_pushButton_calPeaks_clicked()
     // 调取能谱数据，查看单根晶体刻度过程中，自动寻峰结果是否完全正确
     // 如果不正确可以修改，并重新生成能量查找表
     imgFlag = 1;
+
+    EWLeftLine->replace(0, -1, 0);
+    EWLeftLine->replace(1, -1, 1);
+
+    EWRightLine->replace(0, -1, 0);
+    EWRightLine->replace(1, -1, 1);
+
     ShowEHist();
 }
 
 
 void MainWindow::ShowEHist(int peakLoc)
 {
-    qreal peakE = ui->lineEdit_peakEnergy->text().toDouble();
-
     int m = ui->lineEdit_colID->text().toInt();
     int n = ui->lineEdit_rowID->text().toInt();
     int crystalID = n*nCrystal + m;
 
-    Crystal aCrystal = m_BK->GetCrystal(crystalID);
-    Histogram ADCHist = aCrystal.GetADCHist();
+    Crystal* aCrystal = m_BK->GetCrystal(crystalID);
+    Histogram ADCHist = aCrystal->GetADCHist();
+
+    ADCHist.Smooth(10, 2);
 
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
@@ -378,19 +396,21 @@ void MainWindow::on_pushButton_calOnePeak_clicked()
 {
     // 只读取能谱文件中的某一段数据，即某个晶体的能谱数据
     imgFlag = 2;
-    qreal peakE = ui->lineEdit_peakEnergy->text().toDouble();
+
+    EWLeftLine->replace(0, -1, 0);
+    EWLeftLine->replace(1, -1, 1);
+
+    EWRightLine->replace(0, -1, 0);
+    EWRightLine->replace(1, -1, 1);
 
     //按照界面中设置的行号和列号，读入该晶体的能谱
-    int CMID = ui->lineEdit_CMID->text().toInt();
-    int BKID = ui->lineEdit_BKID->text().toInt();
-
     int rowID = ui->lineEdit_rowID->text().toInt();
     int colID = ui->lineEdit_colID->text().toInt();
     int crystalID = rowID*nCrystal + colID;
-    qDebug() << "crystal ID = " << crystalID;
 
-    Crystal aCrystal = m_BK->GetCrystal(crystalID);
-    Histogram ADCHist = aCrystal.GetADCHist();
+    Crystal* aCrystal = m_BK->GetCrystal(crystalID);
+    Histogram ADCHist = aCrystal->GetADCHist();
+    ADCHist.Smooth();
 
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
@@ -461,13 +481,14 @@ void MainWindow::on_label_floodmap_mouseLeftClicked()
         QPoint pos = ui->label_floodmap->GetPos();
         auto coordinate = chart->mapToValue(pos);
         quint16 peakLoc = quint16(coordinate.x());
+        ShowEHist(peakLoc);
 
         int rowID = ui->lineEdit_rowID->text().toInt();
         int colID = ui->lineEdit_colID->text().toInt();
         int crystalID = rowID*nCrystal + colID;
-        qreal peakE = ui->lineEdit_peakEnergy->text().toDouble();
+
         qreal slope = peakE/peakLoc;
-        ShowEHist(peakLoc);
+        m_BK->GetCrystal(crystalID)->SetSlope(slope);
     }
 }
 
@@ -563,8 +584,8 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     QVector<qreal> ERs;
     for (int i = 0; i < crystalNum; ++i)
     {
-        Crystal iCrystal = m_BK->GetCrystal(i);
-        qreal aER =  iCrystal.GetER();
+        Crystal* iCrystal = m_BK->GetCrystal(i);
+        qreal aER =  iCrystal->GetER();
         ERs.append(aER);
     }
 
@@ -576,14 +597,14 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
         {
             qreal aER = ERs[iRow*nCrystal + iCol];
             ERMat(iRow, iCol) = aER;
-            //qDebug() << "n = " << iRow << ", m = " << iCol << ", ER = " << aER;
         }
     }
 
     ShowImage(ERMat);
 
     // 计算总分辨率
-    qreal totalER = m_BK->GetER();
+    //m_BK->CalRecEHist();
+    qreal totalER = m_BK->GetER()*100;
     Histogram eHist = m_BK->GetRecEHist();
 
     // 画总能谱在 label_ehist
@@ -596,14 +617,19 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     }
     eHistLine->replace(points);
 
-    //EWLeftLine->replace(0, leftValue, 0);
-    //EWLeftLine->replace(1, leftValue, peakValue);
+    qreal leftValue = eHist.GetLeftValue();
+    qreal rightValue = eHist.GetRightValue();
+    qreal peakValue = eHist.GetPeak().y();
 
-    //EWRightLine->replace(0, rightValue, 0);
-    //EWRightLine->replace(1, rightValue, peakValue);
+    EWLeftLine->replace(0, leftValue, 0);
+    EWLeftLine->replace(1, leftValue, peakValue);
 
-    //axisX->setRange(recE_min, recE_max);
-    //axisY->setRange(0, std::round(peakValue*1.1));
+    EWRightLine->replace(0, rightValue, 0);
+    EWRightLine->replace(1, rightValue, peakValue);
+
+    axisX->setRange(recE_min, recE_max);
+    axisY->setRange(0, qRound(peakValue*1.1));
+
     chartView->resize(ui->label_eHist->size());
 
     QPixmap pixmap = chartView->grab();
@@ -732,20 +758,17 @@ void MainWindow::ReStoreData()
         quint16 y = data[1][i];
         quint16 e = data[2][i];
 
-        qreal factor = 1.06;
-        int nPixel = 512;
-        int bias = 58;
-
         quint16 xx = std::round(factor*x/e*nPixel) - bias;
         quint16 yy = std::round(factor*y/e*nPixel) - bias;
 
-        if(0<xx && xx<nPixel && 0<yy && yy<nPixel && 0<e && e<ADC_max)
+        //if(0<xx && xx<nPixel && 0<yy && yy<nPixel && 0<e && e<ADC_max)
+        if(xmin<xx && xx<xmax && ymin<yy && yy<ymax && 0<e && e<ADC_max)
         {
             m_BK->Fill(xx, yy, e);
         }
     }
 
-    QString fName = currentPath + "Data/data_CM0_BK0.bin";
+    QString fName = currentPath + "Data/data.bin";
     m_BK->SaveToFile(fName);
 }
 

@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -66,8 +66,6 @@ private slots:
 private:
     Ui::MainWindow* ui;
 
-    Readin* dataObject;
-
     //oooooooOOOOOOOOOoooooooooooo // 能谱相关
     QLineSeries* eHistLine;
     QLineSeries* EWLeftLine;
@@ -87,6 +85,7 @@ private:
     QFile* logFile;
     QTextStream* logOutStream;
 
+    Readin* dataObject;
     Block* m_BK;
 };
 

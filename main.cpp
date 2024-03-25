@@ -1,4 +1,4 @@
-#include "Mainwindow.h"
+﻿#include "Mainwindow.h"
 
 #include <QApplication>
 #include <QString>
@@ -43,6 +43,8 @@ QString currentPath;
 QString fName_LUT_P;
 QString fName_LUT_E;
 QString fName_LUT_U;
+
+int peakE;
 
 
 int main(int argc, char *argv[])

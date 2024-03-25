@@ -46,10 +46,10 @@
    <widget class="QPushButton" name="pushButton_setEW">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>30</x>
       <y>170</y>
-      <width>121</width>
-      <height>71</height>
+      <width>100</width>
+      <height>60</height>
      </rect>
     </property>
     <property name="text">
@@ -62,7 +62,7 @@
       <x>40</x>
       <y>130</y>
       <width>80</width>
-      <height>40</height>
+      <height>36</height>
      </rect>
     </property>
     <property name="text">
@@ -75,9 +75,9 @@
    <widget class="QPushButton" name="pushButton_segment">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>260</y>
-      <width>311</width>
+      <x>30</x>
+      <y>250</y>
+      <width>401</width>
       <height>41</height>
      </rect>
     </property>
@@ -88,9 +88,9 @@
    <widget class="QPushButton" name="pushButton_genPositionLUT">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>30</x>
       <y>310</y>
-      <width>271</width>
+      <width>401</width>
       <height>51</height>
      </rect>
     </property>
@@ -101,9 +101,9 @@
    <widget class="QPushButton" name="pushButton_genEnergyLUT">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>30</x>
       <y>430</y>
-      <width>271</width>
+      <width>401</width>
       <height>41</height>
      </rect>
     </property>
@@ -114,9 +114,9 @@
    <widget class="QPushButton" name="pushButton_calPeaks">
     <property name="geometry">
      <rect>
-      <x>40</x>
+      <x>29</x>
       <y>490</y>
-      <width>120</width>
+      <width>131</width>
       <height>40</height>
      </rect>
     </property>
@@ -127,9 +127,9 @@
    <widget class="QPushButton" name="pushButton_calOnePeak">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>29</x>
       <y>550</y>
-      <width>80</width>
+      <width>131</width>
       <height>40</height>
      </rect>
     </property>
@@ -140,9 +140,9 @@
    <widget class="QWidget" name="layoutWidget1">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>183</x>
       <y>550</y>
-      <width>274</width>
+      <width>241</width>
       <height>44</height>
      </rect>
     </property>
@@ -198,9 +198,9 @@
    <widget class="QWidget" name="layoutWidget2">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>130</x>
       <y>120</y>
-      <width>261</width>
+      <width>301</width>
       <height>71</height>
      </rect>
     </property>
@@ -256,9 +256,9 @@
    <widget class="QWidget" name="layoutWidget3">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>200</y>
-      <width>274</width>
+      <x>130</x>
+      <y>190</y>
+      <width>301</width>
       <height>44</height>
      </rect>
     </property>
@@ -362,9 +362,9 @@
    <widget class="QPushButton" name="pushButton_calSegFOM">
     <property name="geometry">
      <rect>
-      <x>40</x>
+      <x>29</x>
       <y>620</y>
-      <width>100</width>
+      <width>131</width>
       <height>40</height>
      </rect>
     </property>
@@ -375,9 +375,9 @@
    <widget class="QWidget" name="layoutWidget1_2">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>183</x>
       <y>620</y>
-      <width>274</width>
+      <width>241</width>
       <height>51</height>
      </rect>
     </property>
@@ -433,9 +433,9 @@
    <widget class="QPushButton" name="pushButton_writePeaks">
     <property name="geometry">
      <rect>
-      <x>189</x>
+      <x>179</x>
       <y>490</y>
-      <width>200</width>
+      <width>251</width>
       <height>40</height>
      </rect>
     </property>
@@ -451,9 +451,9 @@
    <widget class="QPushButton" name="pushButton_calEnergyResolution">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>700</y>
-      <width>140</width>
+      <x>29</x>
+      <y>690</y>
+      <width>131</width>
       <height>60</height>
      </rect>
     </property>
@@ -469,9 +469,9 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>30</x>
       <y>380</y>
-      <width>281</width>
+      <width>401</width>
       <height>41</height>
      </rect>
     </property>
@@ -511,9 +511,9 @@
    <widget class="QPushButton" name="pushButton_calUniformity">
     <property name="geometry">
      <rect>
-      <x>230</x>
-      <y>700</y>
-      <width>140</width>
+      <x>179</x>
+      <y>690</y>
+      <width>241</width>
       <height>60</height>
      </rect>
     </property>

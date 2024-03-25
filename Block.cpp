@@ -8,8 +8,8 @@
 Block::Block()
 {
     m_I0 = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
+    m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
     m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
-
 
     int n1 = 0;
     int n2 = 0;
@@ -39,16 +39,16 @@ Block::Block()
 
     m_ADCHist = Histogram(ADC_min, ADC_max, ADC_nBins);
     m_recEHist = Histogram(recE_min, recE_max, recE_nBins);
+
+    for (int i = 0; i < crystalNum; ++i)
+    {
+        Crystal* aCrystal = new Crystal(i);
+        m_crystals.append(aCrystal);
+    }
 }
 
 
 Block::~Block() { }
-
-
-void Block::Append(Crystal aCrystal)
-{
-    m_crystals.append(aCrystal);
-}
 
 
 qreal Block::GetER()
@@ -59,11 +59,25 @@ qreal Block::GetER()
 
 void Block::CalRecEHist()
 {
-    m_recEHist = Histogram(recE_min, recE_max, recE_nBins);
-
-    for (auto& aCrystal : m_crystals)
+    int nEvts = m_eList.size();
+    for (int i = 0; i < nEvts; ++i)
     {
-        Histogram aHist = aCrystal.GetRecEHist();
+        quint16 x = m_xList[i];
+        quint16 y = m_yList[i];
+        quint16 e = m_eList[i];
+
+        if(xmin<x && x<xmax && ymin<y && y<ymax && ADC_min<e && e<ADC_max)
+        {
+            quint16 ID = m_segr(y, x);
+            auto aCrystal = m_crystals[ID];
+            aCrystal->Fill(x, y, e);
+        }
+    }
+
+    for (auto aCrystal : m_crystals)
+    {
+        aCrystal->CalRecEHist();
+        Histogram aHist = aCrystal->GetRecEHist();
         m_recEHist.Add(aHist);
     }
 }
@@ -74,7 +88,7 @@ void Block::Fill(quint16 x, quint16 y, quint16 e)
     m_xList.append(x);
     m_yList.append(y);
     m_eList.append(e);
-    m_I0(y, x) += 1;
+    m_ADCHist.Fill(e);
 }
 
 
@@ -100,14 +114,39 @@ void Block::SaveToFile(QString fName)
 }
 
 
-void Block::Segment(QString method)
+
+void Block::SetEW(int EW_min, int EW_max)
 {
+    m_EW_min = EW_min;
+    m_EW_max = EW_max;
+}
+
+
+void Block::CalMap()
+{
+    qDebug() << "start to calculate floodmap beteen energy window.";
+    for (int i = 0; i < m_eList.size(); ++i)
+    {
+        quint16 x = m_xList[i];
+        quint16 y = m_yList[i];
+        quint16 e = m_eList[i];
+
+        if(m_EW_min<e && e<m_EW_max)
+        {
+            m_I0(y, x) += 1;
+        }
+    }
+}
+
+
+void Block::Segment(QString method)
+{ 
     if(method=="SVD")
     {
         Segment1();
     }
 
-    if(method=="Maximum")
+    if(method=="FindMaximum")
     {
         Segment2();
     }
@@ -121,7 +160,8 @@ void Block::Segment1()
     cv::Mat U, S, Vt;
     cv::SVD::compute(m_I0, S, U, Vt); // 进行奇异值分解
 
-    cv::Mat S1 = cv::Mat::zeros(m_I0.size(), CV_32FC1);
+    //cv::Mat S1 = cv::Mat::zeros(m_I0.size(), CV_64FC1);
+    cv::Mat S1 = cv::Mat::zeros(m_I0.size(), m_I0.type());
     S1.at<qreal>(0, 0) = S.at<qreal>(0, 0);
     cv::Mat I1 = U*S1*Vt;
     qDebug() << "SVD done. ";
@@ -262,6 +302,7 @@ void Block::Segment1()
             m_pt(iRow, iCol)[1] = qRound(x.y);
         }
     }
+    qDebug() << "第二次平均值移动迭代。所有峰位寻找完成。";
 }
 
 
@@ -331,7 +372,6 @@ cv::Mat_<cv::Vec2w> Block::GetPeakTable()
 
 cv::Mat_<quint16> Block::GetSegResult()
 {
-    Segment1();
     return m_segr;
 }
 
@@ -358,22 +398,6 @@ QVector<int> Block::FindPeaks(QVector<qreal> v, int nPeaks)
 }
 
 
-void Block::CalMap(qreal EW_min, qreal EW_max)
-{
-    for (int i = 0; i < m_eList.size(); ++i)
-    {
-        int x = m_xList[i];
-        int y = m_yList[i];
-        int e = m_eList[i];
-
-        if(EW_min<e && e<EW_max && xmin<x && x<xmax && ymin<y && y<ymax)
-        {
-            m_I0(y, x) += 1;
-        }
-    }
-}
-
-
 void Block::GenPositionLUT()
 {
     //根据分割结果，生成位置查找表
@@ -386,31 +410,12 @@ void Block::GenPositionLUT()
 
     QDataStream out(&file);
 
-    for (int iCM = 0; iCM < nCM; ++iCM)
+    // 写入矩阵数据
+    for (int iRow = 0; iRow < nPixel; ++iRow)
     {
-        for (int iBK = 0; iBK < nBK; ++iBK)
+        for (int iCol = 0; iCol < nPixel; ++iCol)
         {
-            QString fName = currentPath + "Data/seg_CM" + QString::number(iCM) +
-                            "_BK" + QString::number(iBK) + ".xml";
-            cv::FileStorage fs(fName.toStdString(), cv::FileStorage::READ);
-            if (!fs.isOpened())
-            {
-                qDebug() <<  "无法打开文件: " + fName ;
-                return;
-            }
-
-            cv::Mat_<quint16> segr;
-            fs["segr"] >> segr; // 读取矩阵数据
-            fs.release(); // 关闭文件
-
-            // 写入矩阵数据
-            for (int iRow = 0; iRow < nPixel; ++iRow)
-            {
-                for (int iCol = 0; iCol < nPixel; ++iCol)
-                {
-                    out << segr(iRow, iCol);
-                }
-            }
+            out << m_segr(iRow, iCol);
         }
     }
 
@@ -431,7 +436,7 @@ void Block::GenEnergyLUT()
 
     for (int i = 0; i < crystalNum; ++i)
     {
-        qreal slope = m_crystals[i].GetSlope();
+        qreal slope = m_crystals[i]->GetSlope();
         outStream << slope;
     }
 
@@ -447,7 +452,7 @@ void Block::GenUniformityLUT()
 }
 
 
-Crystal Block::GetCrystal(int ID)
+Crystal* Block::GetCrystal(int ID)
 {
     return m_crystals[ID];
 }
@@ -545,13 +550,10 @@ void Block::GenSegResult()
     fs.write("segr", segr);   // 写入矩阵数据
     fs.release();  // 关闭文件
 
-
-    m_segr = segr;
-    m_edge = edge;
-    m_segMap = I4;
-
+    m_segr = segr.clone();
+    m_edge = edge.clone();
+    m_segMap = I4.clone();
 }
-
 
 
 void Block::CalSegFOM()
@@ -588,7 +590,6 @@ void Block::CalSegFOM()
 
     qreal IR = 1.0*totalEvts/pixelCounter/(1.0*edgeEvts/edgeN);
 
-
     QVector<qreal> RMS;
     for (int iCrystal=0; iCrystal<crystalNum; ++iCrystal)
     {
@@ -616,32 +617,7 @@ void Block::CalSegFOM()
     // 求所有晶体的平均RMS
     qreal meanRMS = std::accumulate(RMS.begin(), RMS.end(), 0.0)/RMS.size();
 
-
     m_IR = IR;
     m_RMS = meanRMS;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

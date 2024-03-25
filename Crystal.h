@@ -1,9 +1,9 @@
-#ifndef CRYSTAL_H
+﻿#ifndef CRYSTAL_H
 #define CRYSTAL_H
 
 #include <QVector>
 #include "Histogram.h"
-#include "Parameters.h"
+
 
 class Crystal
 {
@@ -14,21 +14,23 @@ public:
     ~Crystal();
 
     int GetID();
-    int GetRowID();
-    int GetColID();
-
     void SetID(int ID);
     void SetID(int rowID, int colID);
 
-    void Fill(quint16 x, quint16 y, quint16 e);
-    void Fill(QVector<quint16> data);
+    int GetRowID();
+    int GetColID();
+    void SetRowID(int ID);
+    void SetColID(int ID);
 
-    void SetPeakEnergy(qreal e);
+    void Fill(quint16 x, quint16 y, quint16 e);
+
+    void CalRecEHist();
+    Histogram GetADCHist();
+    Histogram GetRecEHist();
     qreal GetSlope();
     qreal GetER();
 
-    Histogram GetADCHist();
-    Histogram GetRecEHist();
+    void SetSlope(qreal x) {m_slope = x;}
 
 
 private:
@@ -45,13 +47,10 @@ private:
     QVector<quint16> m_eList;
 
     qreal m_ER;
-    qreal m_peakE;
+    qreal m_peakE = 511;
 
     Histogram m_ADCHist;
     Histogram m_recEHist;
-
-    void CalADCHist();
-    void CalRecEHist();
 
     qreal m_slope;
 };
