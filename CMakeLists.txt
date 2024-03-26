@@ -31,13 +31,13 @@ set(PROJECT_SOURCES
     Crystal.cpp
     Block.h
     Block.cpp
-    Module.h
-    Module.cpp
-    PETRing.h
-    PETRing.cpp
     Readin.h
     Readin.cpp
     Parameters.h
+    PETRing.h
+    PETRing.cpp
+    Module.h
+    Module.cpp
 )
 
 qt_add_executable(CPM

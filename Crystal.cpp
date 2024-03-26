@@ -4,28 +4,24 @@
 
 Crystal::Crystal()
 {
-    m_ADCHist = Histogram(ADC_min, ADC_max, ADC_nBins);
-    m_recEHist = Histogram(recE_min, recE_max, recE_nBins);
+    m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
+    m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
 }
 
 
-Crystal::Crystal(int crystalID)
+Crystal::Crystal(int ID)
 {
-    m_ID = crystalID;
-    m_ADCHist = Histogram(ADC_min, ADC_max, ADC_nBins);
-    m_recEHist = Histogram(recE_min, recE_max, recE_nBins);
+    m_ID = ID;
+    m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
+    m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
 }
 
-Crystal::Crystal(int rowID, int colID)
+
+Crystal::~Crystal()
 {
-    m_rowID = rowID;
-    m_colID = colID;
-    m_ADCHist = Histogram(ADC_min, ADC_max, ADC_nBins);
-    m_recEHist = Histogram(recE_min, recE_max, recE_nBins);
+    delete m_ADCHist;
+    delete m_recEHist;
 }
-
-
-Crystal::~Crystal() { }
 
 
 int Crystal::GetID()
@@ -40,57 +36,43 @@ void Crystal::SetID(int ID)
 }
 
 
-void Crystal::SetID(int rowID, int colID)
+int Crystal::GetEntries()
 {
-    m_rowID = rowID;
-    m_colID = colID;
+    return m_eList.size();
 }
 
 
-int Crystal::GetRowID()
+void Crystal::Fill(quint16 e)
 {
-    return m_rowID;
-}
-
-
-int Crystal::GetColID()
-{
-    return m_colID;
-}
-
-
-void Crystal::SetRowID(int ID)
-{
-    m_rowID = ID;
-}
-
-
-void Crystal::SetColID(int ID)
-{
-    m_colID = ID;
-}
-
-void Crystal::Fill(quint16 x, quint16 y, quint16 e)
-{
-    m_xList.append(x);
-    m_yList.append(y);
     m_eList.append(e);
-    m_ADCHist.Fill(e);
+    m_ADCHist->Fill(e);
 }
 
 
 void Crystal::CalRecEHist()
 {
-    m_ADCHist.SetCutValue(ADC_cutValue);
-    qreal peakLoc = m_ADCHist.GetPeak().x();
-    m_slope = m_peakE/peakLoc;
+    m_ADCHist->SetCutValue(ADC_cutValue);
+    qreal peakLoc = m_ADCHist->GetPeak().x();
+    m_slope = peakE/peakLoc;
 
     for (auto var : m_eList)
     {
         qreal recE = m_slope * var;
-        m_recEHist.Fill(recE);
+        m_recEHist->Fill(recE);
     }
-    m_ER = m_recEHist.GetResolution();
+}
+
+
+Histogram* Crystal::GetRecEHist()
+{
+    return m_recEHist;
+}
+
+
+Histogram* Crystal::GetADCHist()
+{
+
+    return m_ADCHist;
 }
 
 
@@ -100,21 +82,14 @@ qreal Crystal::GetSlope()
 }
 
 
+void Crystal::SetSlope(qreal x)
+{
+    m_slope = x;
+}
+
+
 qreal Crystal::GetER()
 {
-    return m_ER;
-}
-
-
-Histogram Crystal::GetRecEHist()
-{
-    return m_recEHist;
-}
-
-
-Histogram Crystal::GetADCHist()
-{
-
-    return m_ADCHist;
+    return m_recEHist->GetResolution();
 }
 

@@ -141,11 +141,13 @@ int main(int argc, char *argv[])
     {
         if (dir.mkdir(directoryName))
         {
-            qDebug() << "Data directory created successfully: " << targetDirectoryPath;
+            qDebug() << "Data directory created successfully: " <<
+                targetDirectoryPath;
         }
         else
         {
-            qDebug() << "Failed to create data directory: " << targetDirectoryPath;
+            qDebug() << "Failed to create data directory: " <<
+                targetDirectoryPath;
         }
     }
 

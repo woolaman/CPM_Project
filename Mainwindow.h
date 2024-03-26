@@ -31,7 +31,7 @@ public:
     cv::Mat GetColorMap(cv::Mat_<qreal> I);
     void ShowImage(cv::Mat_<qreal> I);
     void ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt);
-    void ShowEHist(int peakLoc=-1);
+    void ShowADCHist(int peakLoc=-1);
     void LogOut(QString str);
 
 

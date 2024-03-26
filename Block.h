@@ -10,50 +10,44 @@ class Block
 {
 public:
     Block();
+    Block(int ID);
     ~Block();
 
     int GetID();
     void SetID(int ID);
 
-    qreal GetER();
-
     void Fill(quint16 x, quint16 y, quint16 e);
-
     void SaveToFile(QString fName);
 
     void SetEW(int EW_min, int EW_max);
-
-    Histogram GetADCHist(){return m_ADCHist;}
-    Histogram GetRecEHist(){return m_recEHist;}
-
-    cv::Mat_<qreal> GetMap(){return m_I0;}
+    void CalMap();
 
     void Segment(QString method);
     void Segment1(); // SVD method
     void Segment2(); // find maximum value method
 
-    cv::Mat_<cv::Vec2w> GetPeakTable();
-    cv::Mat_<quint16> GetSegResult();
+    void ManualAdjust(QPoint pos);
+
+    void CalSegResult();
+    void CalRecEHist();
+    void CalSegFOM();
 
     void GenPositionLUT();
     void GenEnergyLUT();
     void GenUniformityLUT();
 
+    cv::Mat_<qreal> GetMap();
     Crystal* GetCrystal(int ID);
+    Histogram* GetADCHist();
+    Histogram* GetRecEHist();
 
-    void ManualAdjust(QPoint pos);
+    cv::Mat_<cv::Vec2w> GetPeakTable();
+    cv::Mat_<quint16> GetSegResult();
+    cv::Mat_<qreal> GetSegMap();
 
-    void GenSegResult();
-    cv::Mat_<qreal> GetSegMap(){return m_segMap;}
-
-    void CalSegFOM();
-    qreal GetIR(){return m_IR;}
-    qreal GetRMS(){return m_RMS;}
-
-    void CalMap();
-
-    void CalRecEHist();
-    QVector<int> FindPeaks(QVector<qreal> v, int nPeaks);
+    qreal GetER();
+    qreal GetIR();
+    qreal GetRMS();
 
 
 private: // private members
@@ -61,11 +55,14 @@ private: // private members
     QVector<quint16> m_yList;
     QVector<quint16> m_eList;
 
-    int m_BKID;
+    int m_ID;
     QVector<Crystal*> m_crystals;
 
-    Histogram m_ADCHist;
-    Histogram m_recEHist;
+    int m_EW_min;
+    int m_EW_max;
+
+    Histogram* m_ADCHist;
+    Histogram* m_recEHist;
 
     cv::Mat_<qreal> m_I0;
     cv::Mat_<cv::Vec2w> m_pt;
@@ -76,11 +73,15 @@ private: // private members
     int m_num1;
     int m_num2;
 
+    qreal m_ER;
     qreal m_IR;
     qreal m_RMS;
 
-    int m_EW_min;
-    int m_EW_max;
+
+private: // private functions
+    void CalGroupPar();
+    QVector<int> FindPeaks(QVector<qreal> v, int nPeaks);
+
 };
 
 #endif // BLOCK_H

@@ -1,9 +1,12 @@
 ﻿#include "Block.h"
+
+#include <QDebug>
+#include <QFile>
+
 #include "opencv2/imgproc.hpp"
 
 #include "Parameters.h"
-#include <QDebug>
-#include <QFile>
+
 
 Block::Block()
 {
@@ -11,75 +14,61 @@ Block::Block()
     m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
     m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
 
-    int n1 = 0;
-    int n2 = 0;
-    int minDiff = nCrystal; // 初始最小差值为 n
-
-    // 在 2 到 √n 之间搜索因子
-    for (int i = 2; i <= qSqrt(nCrystal); ++i)
-    {
-        if (nCrystal % i == 0)
-        {
-            int factor1 = i;
-            int factor2 = nCrystal / i;
-            int diff = qAbs(factor2 - factor1); // 计算差值
-
-            // 如果当前差值更小，则更新最小差值和对应的因子
-            if (diff < minDiff)
-            {
-                minDiff = diff;
-                n1 = factor1;
-                n2 = factor2;
-            }
-        }
-    }
-
-    m_num1 = n1;
-    m_num2 = n2;
-
-    m_ADCHist = Histogram(ADC_min, ADC_max, ADC_nBins);
-    m_recEHist = Histogram(recE_min, recE_max, recE_nBins);
+    m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
+    m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
 
     for (int i = 0; i < crystalNum; ++i)
     {
         Crystal* aCrystal = new Crystal(i);
         m_crystals.append(aCrystal);
     }
+
+    CalGroupPar();
 }
 
 
-Block::~Block() { }
-
-
-qreal Block::GetER()
+Block::Block(int ID)
 {
-    return m_recEHist.GetResolution();
+    m_ID = ID;
+
+    m_I0 = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
+    m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
+    m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
+
+    m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
+    m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
+
+    for (int i = 0; i < crystalNum; ++i)
+    {
+        Crystal* aCrystal = new Crystal(i);
+        m_crystals.append(aCrystal);
+    }
+
+    CalGroupPar();
 }
 
 
-void Block::CalRecEHist()
+Block::~Block()
 {
-    int nEvts = m_eList.size();
-    for (int i = 0; i < nEvts; ++i)
+    for (int i = 0; i < crystalNum; ++i)
     {
-        quint16 x = m_xList[i];
-        quint16 y = m_yList[i];
-        quint16 e = m_eList[i];
-
-        if(xmin<x && x<xmax && ymin<y && y<ymax && ADC_min<e && e<ADC_max)
-        {
-            quint16 ID = m_segr(y, x);
-            auto aCrystal = m_crystals[ID];
-            aCrystal->Fill(x, y, e);
-        }
+        delete m_crystals[i];
     }
 
-    for (auto aCrystal : m_crystals)
-    {
-        aCrystal->CalRecEHist();
-        Histogram aHist = aCrystal->GetRecEHist();
-        m_recEHist.Add(aHist);
-    }
+    delete m_ADCHist;
+    delete m_recEHist;
+}
+
+
+int Block::GetID()
+{
+    return m_ID;
+}
+
+
+void Block::SetID(int ID)
+{
+    m_ID = ID;
 }
 
 
@@ -88,7 +77,7 @@ void Block::Fill(quint16 x, quint16 y, quint16 e)
     m_xList.append(x);
     m_yList.append(y);
     m_eList.append(e);
-    m_ADCHist.Fill(e);
+    m_ADCHist->Fill(e);
 }
 
 
@@ -112,7 +101,6 @@ void Block::SaveToFile(QString fName)
 
     qDebug() << "按 BK 保存文件完成。";
 }
-
 
 
 void Block::SetEW(int EW_min, int EW_max)
@@ -364,100 +352,6 @@ void Block::Segment2() // maximum method to find peaks
 }
 
 
-cv::Mat_<cv::Vec2w> Block::GetPeakTable()
-{
-    return m_pt;
-}
-
-
-cv::Mat_<quint16> Block::GetSegResult()
-{
-    return m_segr;
-}
-
-
-QVector<int> Block::FindPeaks(QVector<qreal> v, int nPeaks)
-{
-    QVector<int> peaks;
-    for (int iPeak = 0; iPeak < nPeaks; ++iPeak)
-    {
-        int maxIdx = std::max_element( v.begin(), v.end() ) - v.begin();
-        peaks.append(maxIdx);
-
-        int r = 6;
-        int start = std::max(maxIdx-r, 0);
-        int stop = std::min(maxIdx+r, nPixel-1);
-        for (int i=start; i<=stop; ++i)
-        {
-            v[i] = 0;
-        }
-    }
-
-    std::sort(peaks.begin(), peaks.end());
-    return peaks;
-}
-
-
-void Block::GenPositionLUT()
-{
-    //根据分割结果，生成位置查找表
-    QFile file(fName_LUT_P);
-    if(!file.open(QIODevice::WriteOnly))
-    {
-        qDebug() << "打开文件失败，无法生成位置查找表。";
-        return;
-    }
-
-    QDataStream out(&file);
-
-    // 写入矩阵数据
-    for (int iRow = 0; iRow < nPixel; ++iRow)
-    {
-        for (int iCol = 0; iCol < nPixel; ++iCol)
-        {
-            out << m_segr(iRow, iCol);
-        }
-    }
-
-    file.close();
-    qDebug() << "位置查找表已生成: " + fName_LUT_P;
-}
-
-
-void Block::GenEnergyLUT()
-{
-    QFile outFile(fName_LUT_E);
-    if(!outFile.open(QIODevice::WriteOnly))
-    {
-        qDebug() << "打开文件失败，无法生成能量查找表。";
-        return;
-    }
-    QDataStream outStream(&outFile);
-
-    for (int i = 0; i < crystalNum; ++i)
-    {
-        qreal slope = m_crystals[i]->GetSlope();
-        outStream << slope;
-    }
-
-    outFile.close();
-    qDebug() << "能量查找表已生成: " + fName_LUT_E;
-}
-
-
-void Block::GenUniformityLUT()
-{
-
-
-}
-
-
-Crystal* Block::GetCrystal(int ID)
-{
-    return m_crystals[ID];
-}
-
-
 void Block::ManualAdjust(QPoint pos)
 {
     cv::Mat_<qreal> dis(nCrystal, nCrystal, 0.0);
@@ -479,7 +373,7 @@ void Block::ManualAdjust(QPoint pos)
 }
 
 
-void Block::GenSegResult()
+void Block::CalSegResult()
 {
     //step 4, 开始分割, //计算像素点属于哪个峰
     cv::Mat_<quint16> seg1(nPixel, nPixel); // 列信息
@@ -556,6 +450,32 @@ void Block::GenSegResult()
 }
 
 
+void Block::CalRecEHist()
+{
+    int nEvts = m_eList.size();
+    for (int i = 0; i < nEvts; ++i)
+    {
+        quint16 x = m_xList[i];
+        quint16 y = m_yList[i];
+        quint16 e = m_eList[i];
+
+        if(xmin<x && x<xmax && ymin<y && y<ymax && m_EW_min<e && e<m_EW_max)
+        {
+            quint16 ID = m_segr(y, x);
+            m_crystals[ID]->Fill(e);
+        }
+    }
+
+    for (auto aCrystal : m_crystals)
+    {
+        aCrystal->CalRecEHist();
+        m_recEHist->Add(aCrystal->GetRecEHist());
+    }
+
+    m_ER = m_recEHist->GetResolution();
+}
+
+
 void Block::CalSegFOM()
 {
     // step 5, 求分割质量参数
@@ -619,5 +539,174 @@ void Block::CalSegFOM()
 
     m_IR = IR;
     m_RMS = meanRMS;
+}
+
+
+void Block::GenPositionLUT()
+{
+    //根据分割结果，生成位置查找表
+    QFile file(fName_LUT_P);
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        qDebug() << "打开文件失败，无法生成位置查找表。";
+        return;
+    }
+
+    QDataStream out(&file);
+
+    // 写入矩阵数据
+    for (int iRow = 0; iRow < nPixel; ++iRow)
+    {
+        for (int iCol = 0; iCol < nPixel; ++iCol)
+        {
+            out << m_segr(iRow, iCol);
+        }
+    }
+
+    file.close();
+    qDebug() << "位置查找表已生成: " + fName_LUT_P;
+}
+
+
+void Block::GenEnergyLUT()
+{
+    QFile outFile(fName_LUT_E);
+    if(!outFile.open(QIODevice::WriteOnly))
+    {
+        qDebug() << "打开文件失败，无法生成能量查找表。";
+        return;
+    }
+    QDataStream outStream(&outFile);
+
+    for (int i = 0; i < crystalNum; ++i)
+    {
+        qreal slope = m_crystals[i]->GetSlope();
+        outStream << slope;
+    }
+
+    outFile.close();
+    qDebug() << "能量查找表已生成: " + fName_LUT_E;
+}
+
+
+void Block::GenUniformityLUT()
+{
+
+
+}
+
+
+cv::Mat_<qreal> Block::GetMap()
+{
+    return m_I0;
+}
+
+
+Crystal* Block::GetCrystal(int ID)
+{
+    return m_crystals[ID];
+}
+
+
+Histogram* Block::GetADCHist()
+{
+    return m_ADCHist;
+}
+
+
+Histogram* Block::GetRecEHist()
+{
+    return m_recEHist;
+}
+
+
+cv::Mat_<cv::Vec2w> Block::GetPeakTable()
+{
+    return m_pt;
+}
+
+
+cv::Mat_<quint16> Block::GetSegResult()
+{
+    return m_segr;
+}
+
+
+cv::Mat_<qreal> Block::GetSegMap()
+{
+    return m_segMap;
+}
+
+
+qreal Block::GetER()
+{
+    return m_ER;
+}
+
+
+qreal Block::GetIR()
+{
+    return m_IR;
+}
+
+
+qreal Block::GetRMS()
+{
+    return m_RMS;
+}
+
+
+void Block::CalGroupPar()
+{
+    int n1 = 0;
+    int n2 = 0;
+    int minDiff = nCrystal; // 初始最小差值为 n
+
+    // 在 2 到 √n 之间搜索因子
+    for (int i = 2; i <= qSqrt(nCrystal); ++i)
+    {
+        if (nCrystal % i == 0)
+        {
+            int factor1 = i;
+            int factor2 = nCrystal / i;
+            int diff = qAbs(factor2 - factor1); // 计算差值
+
+            // 如果当前差值更小，则更新最小差值和对应的因子
+            if (diff < minDiff)
+            {
+                minDiff = diff;
+                n1 = factor1;
+                n2 = factor2;
+            }
+        }
+    }
+
+    m_num1 = n1;
+    m_num2 = n2;
+
+    qDebug() << "SVD method need two parameters to group peaks, n1 = "
+             << n1 << ", n2 = " << n2;
+}
+
+
+QVector<int> Block::FindPeaks(QVector<qreal> v, int nPeaks)
+{
+    QVector<int> peaks;
+    for (int iPeak = 0; iPeak < nPeaks; ++iPeak)
+    {
+        int maxIdx = std::max_element( v.begin(), v.end() ) - v.begin();
+        peaks.append(maxIdx);
+
+        int r = 6;
+        int start = std::max(maxIdx-r, 0);
+        int stop = std::min(maxIdx+r, nPixel-1);
+        for (int i=start; i<=stop; ++i)
+        {
+            v[i] = 0;
+        }
+    }
+
+    std::sort(peaks.begin(), peaks.end());
+    return peaks;
 }
 

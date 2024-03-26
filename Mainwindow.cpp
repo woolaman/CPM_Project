@@ -42,23 +42,23 @@ MainWindow::MainWindow(QWidget *parent)
     for (int i = 0; i < ADC_nBins; ++i)
     {
         qreal x = ADC_min + i*ADC_binWidth + ADC_binWidth/2;
-        eHistLine->append(x, 0);
+        eHistLine->append(x, -1);
     }
 
     EWLeftLine = new QLineSeries();
     EWLeftLine->setPen( QPen(Qt::red, 1));
-    EWLeftLine->append(0, 0);
-    EWLeftLine->append(0, 1);
+    EWLeftLine->append(-1, 0);
+    EWLeftLine->append(-1, 1);
 
     EWRightLine = new QLineSeries();
     EWRightLine->setPen( QPen(Qt::red, 1));
-    EWRightLine->append(0, 0);
-    EWRightLine->append(0, 1);
+    EWRightLine->append(-1, 0);
+    EWRightLine->append(-1, 1);
 
     peakLine = new QLineSeries();
     peakLine->setPen( QPen(Qt::red, 1));
-    peakLine->append(0, 0);
-    peakLine->append(0, 1);
+    peakLine->append(-1, 0);
+    peakLine->append(-1, 1);
 
     chart = new QChart();
     chartView = new QChartView();
@@ -103,13 +103,14 @@ MainWindow::MainWindow(QWidget *parent)
     QPixmap pixmap = chartView->grab();
     ui->label_eHist->setPixmap(pixmap);
 
-    ShowImage(cv::Mat::zeros(nPixel, nPixel, CV_16UC1));
+    ShowImage(cv::Mat::zeros(nPixel, nPixel, CV_64FC1));
     LogOut("初始化完成。");
 }
 
 
 MainWindow::~MainWindow()
 {
+    /**********************
     delete ui;
     delete eHistLine;
     delete EWLeftLine;
@@ -120,12 +121,13 @@ MainWindow::~MainWindow()
     delete chart;
     delete chartView;
 
-    //delete dataObject;
+    delete dataObject;
+    delete m_BK;
 
     LogOut("程序关闭。");
-
     delete logOutStream;
     logFile->close();
+    *************************/
 }
 
 
@@ -141,7 +143,7 @@ cv::Mat MainWindow::GetColorMap(cv::Mat_<qreal> I)
     {
         for (int j = 0; j < I.cols; ++j)
         {
-            scaledMap(i, j) = std::round(I(i, j)/max_val*255);
+            scaledMap(i, j) = qRound(I(i, j)/max_val*255);
         }
     }
 
@@ -157,6 +159,7 @@ void MainWindow::ShowImage(cv::Mat_<qreal> I)
     cv::Mat colorMap = GetColorMap(I);
     QImage qtImage(colorMap.data, colorMap.cols, colorMap.rows,
                    colorMap.step, QImage::Format_BGR888);
+
     if(qtImage.width()<nPixel || qtImage.height()<nPixel)
     {
         QImage scaledImage = qtImage.scaled(nPixel, nPixel);
@@ -190,8 +193,10 @@ void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
             int y = pt(j, i)[1];
 
             int r = 2;
-            painter.drawLine(x-r, y+r, x+r, y-r); // "/"
-            painter.drawLine(x-r, y-r, x+r, y+r); // "\"
+            //painter.drawLine(x-r, y+r, x+r, y-r); // "/"
+            //painter.drawLine(x-r, y-r, x+r, y+r); // "\"
+            painter.drawLine(x-r, y, x+r, y); // "——"
+            painter.drawLine(x, y-r, x, y+r); // "|"
             points.append(QPoint(x, y));
         }
         painter.drawPolyline(points.data(), points.size());
@@ -223,8 +228,10 @@ void MainWindow::on_pushButton_readinData_clicked()
     // 连接线程的启动信号到 Worker 对象的工作槽
     QObject::connect(thread, &QThread::started, dataObject, &Readin::StartReadTxt);
 
-    QObject::connect(dataObject, SIGNAL(currentPos(int)),  this, SLOT(UpdateProgressBar(int)));
-    QObject::connect(dataObject, SIGNAL(finished()), this, SLOT(ReStoreData()));
+    QObject::connect(dataObject, SIGNAL(currentPos(int)),
+                     this, SLOT(UpdateProgressBar(int)));
+    QObject::connect(dataObject, SIGNAL(finished()),
+                     this, SLOT(ReStoreData()));
 
     // 当线程结束时，删除 Worker 对象和线程对象
     //QObject::connect(&thread, &QThread::finished, &worker, &QObject::deleteLater);
@@ -265,17 +272,17 @@ void MainWindow::on_pushButton_setEW_clicked()
         return;
     }
 
-    Histogram ADCHist = m_BK->GetADCHist();
+    Histogram* ADCHist = m_BK->GetADCHist();
 
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
     {
-        qreal x = ADCHist.GetBinCenter(i);
-        qreal y = ADCHist.GetBinContent(i);
+        qreal x = ADCHist->GetBinCenter(i);
+        qreal y = ADCHist->GetBinContent(i);
         points.append(QPointF(x, y));
     }
 
-    QPointF peak = ADCHist.GetPeak();
+    QPointF peak = ADCHist->GetPeak();
     qreal peak_x = peak.x();
     m_peakValue = peak.y();
 
@@ -285,7 +292,7 @@ void MainWindow::on_pushButton_setEW_clicked()
     int maxEW = qRound(peak_x*(1+EW_width));
 
     axisX->setRange(0, ADC_max);
-    axisY->setRange(0, m_peakValue*1.1);
+    axisY->setRange(0, qRound(m_peakValue*1.1));
 
     EWLeftLine->replace(0, minEW, 0);
     EWLeftLine->replace(1, minEW, m_peakValue);
@@ -306,7 +313,7 @@ void MainWindow::on_pushButton_setEW_clicked()
     ShowImage(m_BK->GetMap());
     LogOut("Generate I0. ");
 
-    peakE = ui->lineEdit_peakEnergy->text().toInt();
+    //peakE = ui->lineEdit_peakEnergy->text().toInt();
 
     //cv::Mat color_I0 = GetColorMap(I0);
     //cv::namedWindow("I0", cv::WINDOW_NORMAL); // cv::WINDOW_AUTOSIZE
@@ -332,7 +339,7 @@ void MainWindow::on_pushButton_genPositionLUT_clicked()
 
 void MainWindow::on_pushButton_genEnergyLUT_clicked()
 {
-
+    peakE = ui->lineEdit_peakEnergy->text().toDouble();
     m_BK->CalRecEHist();
     m_BK->GenEnergyLUT();
 }
@@ -350,42 +357,42 @@ void MainWindow::on_pushButton_calPeaks_clicked()
     EWRightLine->replace(0, -1, 0);
     EWRightLine->replace(1, -1, 1);
 
-    ShowEHist();
+    ShowADCHist();
 }
 
 
-void MainWindow::ShowEHist(int peakLoc)
+void MainWindow::ShowADCHist(int peakLoc)
 {
     int m = ui->lineEdit_colID->text().toInt();
     int n = ui->lineEdit_rowID->text().toInt();
     int crystalID = n*nCrystal + m;
 
     Crystal* aCrystal = m_BK->GetCrystal(crystalID);
-    Histogram ADCHist = aCrystal->GetADCHist();
+    Histogram* ADCHist = aCrystal->GetADCHist();
 
-    ADCHist.Smooth(10, 2);
+    ADCHist->Smooth();
 
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
     {
-        qreal x = ADCHist.GetBinCenter(i);
-        qreal y = ADCHist.GetBinContent(i);
+        qreal x = ADCHist->GetBinCenter(i);
+        qreal y = ADCHist->GetBinContent(i);
         points.append(QPointF(x, y));
     }
     eHistLine->replace(points);
 
     if(-1==peakLoc)
     {
-        peakLine->replace(0, ADCHist.GetPeak().x(), 0);
-        peakLine->replace(1, ADCHist.GetPeak().x(), ADCHist.GetPeak().y());
+        peakLine->replace(0, ADCHist->GetPeak().x(), 0);
+        peakLine->replace(1, ADCHist->GetPeak().x(), ADCHist->GetPeak().y());
     }
     else
     {
         peakLine->replace(0, peakLoc, 0);
-        peakLine->replace(1, peakLoc, ADCHist.GetPeak().y());
+        peakLine->replace(1, peakLoc, ADCHist->GetPeak().y());
     }
 
-    axisY->setRange(0, ADCHist.GetPeak().y()*1.1);
+    axisY->setRange(0, ADCHist->GetPeak().y()*1.1);
 
     QPixmap pixmap = chartView->grab();
     ui->label_floodmap->setPixmap(pixmap);
@@ -409,22 +416,22 @@ void MainWindow::on_pushButton_calOnePeak_clicked()
     int crystalID = rowID*nCrystal + colID;
 
     Crystal* aCrystal = m_BK->GetCrystal(crystalID);
-    Histogram ADCHist = aCrystal->GetADCHist();
-    ADCHist.Smooth();
+    Histogram* ADCHist = aCrystal->GetADCHist();
+    ADCHist->Smooth();
 
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
     {
-        qreal x = ADCHist.GetBinCenter(i);
-        qreal y = ADCHist.GetBinContent(i);
+        qreal x = ADCHist->GetBinCenter(i);
+        qreal y = ADCHist->GetBinContent(i);
         points.append(QPointF(x, y));
     }
     eHistLine->replace(points);
 
-    peakLine->replace(0, ADCHist.GetPeak().x(), 0);
-    peakLine->replace(1, ADCHist.GetPeak().x(), ADCHist.GetPeak().y());
+    peakLine->replace(0, ADCHist->GetPeak().x(), 0);
+    peakLine->replace(1, ADCHist->GetPeak().x(), ADCHist->GetPeak().y());
 
-    axisY->setRange(0, ADCHist.GetPeak().y()*1.1);
+    axisY->setRange(0, ADCHist->GetPeak().y()*1.1);
 
     QPixmap pixmap = chartView->grab();
     ui->label_floodmap->setPixmap(pixmap);
@@ -481,7 +488,7 @@ void MainWindow::on_label_floodmap_mouseLeftClicked()
         QPoint pos = ui->label_floodmap->GetPos();
         auto coordinate = chart->mapToValue(pos);
         quint16 peakLoc = quint16(coordinate.x());
-        ShowEHist(peakLoc);
+        ShowADCHist(peakLoc);
 
         int rowID = ui->lineEdit_rowID->text().toInt();
         int colID = ui->lineEdit_colID->text().toInt();
@@ -497,7 +504,7 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
 {
     if(0==imgFlag)
     {
-        m_BK->GenSegResult();
+        m_BK->CalSegResult();
         ShowImage(m_BK->GetSegMap());
         // 保存分割结果图片
         QPixmap pixmap = ui->label_floodmap->pixmap();
@@ -538,7 +545,7 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
         ui->lineEdit_colID->setText(QString::number(m));
         ui->lineEdit_rowID->setText(QString::number(n));
 
-        ShowEHist();
+        ShowADCHist();
     }
 
     if(2==imgFlag)
@@ -580,46 +587,55 @@ void MainWindow::on_pushButton_writePeaks_clicked()
 
 void MainWindow::on_pushButton_calEnergyResolution_clicked()
 {
-    // 计算单根分辨率
-    QVector<qreal> ERs;
-    for (int i = 0; i < crystalNum; ++i)
-    {
-        Crystal* iCrystal = m_BK->GetCrystal(i);
-        qreal aER =  iCrystal->GetER();
-        ERs.append(aER);
-    }
+    qDebug() << "calculate ER map.";
 
+    // 计算单根分辨率
     // 画单根分辨率map 在label_floodmap
     cv::Mat_<qreal> ERMat(nCrystal, nCrystal);
     for (int iRow = 0; iRow < nCrystal; ++iRow)
     {
         for (int iCol = 0; iCol < nCrystal; ++iCol)
         {
-            qreal aER = ERs[iRow*nCrystal + iCol];
-            ERMat(iRow, iCol) = aER;
+            int id = iRow * nCrystal + iCol;
+            qreal aER = m_BK->GetCrystal(id)->GetER();
+            ERMat(iRow, iCol) = aER*100;
         }
     }
-
     ShowImage(ERMat);
 
+    QPixmap aPixmap = ui->label_floodmap->pixmap();
+    QPainter aPainter(&aPixmap);
+    aPainter.setPen(QPen(Qt::black, 1));
+    aPainter.setFont(QFont("Arial", 10));
+    qreal width = 1.0*nPixel/nCrystal;
+    for (int iRow = 0; iRow < nCrystal; ++iRow)
+    {
+        for (int iCol = 0; iCol < nCrystal; ++iCol)
+        {
+            int iER = qRound(ERMat(iRow, iCol));
+            QRect rect(iCol*width, iRow*width, width, width);
+            aPainter.drawText(rect, Qt::AlignCenter, QString::number(iER));
+        }
+    }
+    ui->label_floodmap->setPixmap(aPixmap);
+
     // 计算总分辨率
-    //m_BK->CalRecEHist();
+    Histogram* eHist = m_BK->GetRecEHist();
     qreal totalER = m_BK->GetER()*100;
-    Histogram eHist = m_BK->GetRecEHist();
 
     // 画总能谱在 label_ehist
     QVector<QPointF> points;
     for (int i = 0; i < recE_nBins; ++i)
     {
-        qreal x = eHist.GetBinCenter(i);
-        qreal y = eHist.GetBinContent(i);
+        qreal x = eHist->GetBinCenter(i);
+        qreal y = eHist->GetBinContent(i);
         points.append( QPointF(x, y) );
     }
     eHistLine->replace(points);
 
-    qreal leftValue = eHist.GetLeftValue();
-    qreal rightValue = eHist.GetRightValue();
-    qreal peakValue = eHist.GetPeak().y();
+    qreal leftValue = eHist->GetLeftValue();
+    qreal rightValue = eHist->GetRightValue();
+    qreal peakValue = eHist->GetPeak().y();
 
     EWLeftLine->replace(0, leftValue, 0);
     EWLeftLine->replace(1, leftValue, peakValue);
@@ -649,44 +665,37 @@ void MainWindow::on_pushButton_calUniformity_clicked()
     cv::Mat_<qreal> nEvts = cv::Mat::zeros(nCrystal, nCrystal, CV_32FC1);
 
     int totalEvts = 0;
-
-    // 读入能谱数据
-    QString CMID = ui->lineEdit_CMID->text();
-    QString BKID = ui->lineEdit_BKID->text();
-    QString fName = currentPath + "Data/eHist_CM" + CMID + "_BK" + BKID + ".bin";
-    QFile file(fName);
-    if (file.open(QIODevice::ReadOnly))
+    for (int iRow = 0; iRow < nCrystal; ++iRow)
     {
-        QDataStream in(&file);
-
-        for (int iCrystal = 0; iCrystal < crystalNum; ++iCrystal)
+        for (int iCol = 0; iCol < nCrystal; ++iCol)
         {
-            QVector<quint16> iHist(ADC_nBins, 0);
-            for (int iBin = 0; iBin < ADC_nBins; ++iBin)
-            {
-                in >> iHist[iBin];
-            }
-
-            int sum = std::accumulate(iHist.begin(), iHist.end(), 0);
-            totalEvts += sum;
-
-            int iRow = iCrystal / nCrystal;
-            int iCol = iCrystal % nCrystal;
-
-            nEvts(iRow, iCol) = sum;
+            int id = iRow*nCrystal + iCol;
+            int N = m_BK->GetCrystal(id)->GetEntries();
+            nEvts(iRow, iCol) = N;
+            totalEvts += N;
         }
-
-        file.close();
-    }
-    else
-    {
-        LogOut("Failed to open the ehist file.");
     }
 
     ShowImage(nEvts);
 
     qreal mean_nEvts = 1.0*totalEvts/(crystalNum);
     cv::Mat_<qreal> uniformityPar = mean_nEvts/nEvts;
+
+    QPixmap aPixmap = ui->label_floodmap->pixmap();
+    QPainter aPainter(&aPixmap);
+    aPainter.setPen(QPen(Qt::black, 1));
+    aPainter.setFont(QFont("Arial", 10));
+    qreal width = 1.0*nPixel/nCrystal;
+    for (int iRow = 0; iRow < nCrystal; ++iRow)
+    {
+        for (int iCol = 0; iCol < nCrystal; ++iCol)
+        {
+            qreal iER = 1.0/uniformityPar(iRow, iCol);
+            QRect rect(iCol*width, iRow*width, width, width);
+            aPainter.drawText(rect, Qt::AlignCenter, QString::number(iER, 'f', 1));
+        }
+    }
+    ui->label_floodmap->setPixmap(aPixmap);
 
     QFile outfile(fName_LUT_U);
     if ( outfile.open(QIODevice::WriteOnly) )
@@ -761,7 +770,6 @@ void MainWindow::ReStoreData()
         quint16 xx = std::round(factor*x/e*nPixel) - bias;
         quint16 yy = std::round(factor*y/e*nPixel) - bias;
 
-        //if(0<xx && xx<nPixel && 0<yy && yy<nPixel && 0<e && e<ADC_max)
         if(xmin<xx && xx<xmax && ymin<yy && yy<ymax && 0<e && e<ADC_max)
         {
             m_BK->Fill(xx, yy, e);

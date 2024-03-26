@@ -32,16 +32,16 @@ void Histogram::Fill(qreal value)
 {
     int idx = qFloor( (value-m_xmin)/m_binWidth );
 
-    if(idx<0 || idx>m_nBins)
+    if(0<=idx || idx<m_nBins)
+    {
+        m_binContents[idx] += 1;
+    }
+    else
     {
         qDebug() << "idx = " << idx;
         qDebug() << "value = " << value;
-
         qDebug() << "m_xmin = " << m_xmin << ", m_binWith = " << m_binWidth;
-        return;
     }
-
-    m_binContents[idx] += 1;
 }
 
 
@@ -51,42 +51,15 @@ qreal Histogram::GetBinWidth()
 }
 
 
-qreal Histogram::GetBinContent(int iBin)
-{
-    return m_binContents[iBin];
-}
-
-
-QVector<qreal> Histogram::GetBinContents()
-{
-    return m_binContents;
-}
-
-
 qreal Histogram::GetBinCenter(int iBin)
 {
     return m_binCenters[iBin];
 }
 
 
-QVector<qreal> Histogram::GetBinCenters()
+qreal Histogram::GetBinContent(int iBin)
 {
-    return m_binCenters;
-}
-
-
-void Histogram::SetBinContent(int iBin, qreal value)
-{
-    m_binContents[iBin] = value;
-}
-
-
-void Histogram::SetBinContents(QVector<qreal>& vec)
-{
-    for (int i = 0; i < m_nBins; ++i)
-    {
-        m_binContents[i] = vec[i];
-    }
+    return m_binContents[iBin];
 }
 
 
@@ -126,6 +99,16 @@ void Histogram::SetCutValue(qreal value)
 }
 
 
+void Histogram::Add(Histogram* aHist)
+{
+    for (int i = 0; i < m_nBins; ++i)
+    {
+        qreal binH = aHist->GetBinContent(i);
+        m_binContents[i] += binH;
+    }
+}
+
+
 QPointF Histogram::GetPeak()
 {
     int cutIdx = qRound((m_cutValue-m_xmin)/m_binWidth);
@@ -162,15 +145,19 @@ qreal Histogram::GetResolution()
     m_leftValue = m_binCenters[leftIdx];
     m_rightValue = m_binCenters[rightIdx];
     qreal FWHM = m_rightValue - m_leftValue; // 半高宽
+
     return FWHM/peak_x;
 }
 
 
-void Histogram::Add(Histogram& aHist)
+qreal Histogram::GetLeftValue()
 {
-    for (int i = 0; i < m_nBins; ++i)
-    {
-        m_binContents[i] += aHist.GetBinContent(i);
-    }
+    return m_leftValue;
+}
+
+
+qreal Histogram::GetRightValue()
+{
+    return m_rightValue;
 }
 

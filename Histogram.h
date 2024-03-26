@@ -15,40 +15,31 @@ public:
     void Fill(qreal value);
 
     qreal GetBinWidth();
-
-    qreal GetBinContent(int iBin);
-    QVector<qreal> GetBinContents();
-
     qreal GetBinCenter(int iBin);
-    QVector<qreal> GetBinCenters();
-
-    void SetBinContent(int iBin, qreal value);
-    void SetBinContents(QVector<qreal>& vec);
+    qreal GetBinContent(int iBin);
 
     void Smooth(int windowSize=10);
     void Smooth(int windowSize, int times);
 
     void SetCutValue(qreal value);
+
+    void Add(Histogram* aHist);
+
     QPointF GetPeak();
     qreal GetResolution();
-
-    void Add(Histogram& aHist);
-
-    qreal GetLeftValue(){return m_leftValue;}
-    qreal GetRightValue(){return m_rightValue;}
+    qreal GetLeftValue();
+    qreal GetRightValue();
 
 private:
+    int m_nBins;
     qreal m_xmin;
     qreal m_xmax;
-
-    int m_nBins;
     qreal m_binWidth;
-
-    // < m_cutValue, bin heiht = 0, using it in finding peak
-    qreal m_cutValue;
 
     QVector<qreal> m_binContents;
     QVector<qreal> m_binCenters;
+
+    qreal m_cutValue;
 
     qreal m_leftValue;
     qreal m_rightValue;

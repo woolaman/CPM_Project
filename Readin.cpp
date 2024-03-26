@@ -4,6 +4,8 @@
 #include <QTextStream>
 #include <QDebug>
 
+#include "Parameters.h"
+
 
 Readin::Readin() {}
 
@@ -11,14 +13,6 @@ Readin::Readin() {}
 Readin::Readin(QString fName)
 {
     m_fileName = fName;
-}
-
-
-Readin::Readin(QString fName, int CMN, int BKN)
-{
-    m_fileName = fName;
-    nCM = CMN;
-    nBK = BKN;
 }
 
 
@@ -107,6 +101,7 @@ void Readin::StartReadBin()
     quint64 fileSize = file.size(); // 获取文件大小，用于计算进度
 
     QDataStream in(&file);
+    int prePos = 0;
     while (!in.atEnd())  // 循环读取每个事例的数据
     {
         // 读取8个变量的数据
@@ -149,11 +144,11 @@ void Readin::StartReadBin()
         m_data[iLine].append(y);
         m_data[iLine].append(e);
 
-        double p1 = 100.0*file.pos()/fileSize;
-        int p2 = qRound(p1);
-        if(qFabs(p1-p2)<1.e-5)
+        int pos = qRound(100.0*file.pos()/fileSize);
+        if(pos>prePos)
         {
-            emit currentPos(p2);
+            emit currentPos(pos);
+            prePos = pos;
         }
     }
     file.close();
@@ -165,17 +160,5 @@ void Readin::StartReadBin()
 QVector< QVector<quint16> > Readin::GetData()
 {
     return m_data;
-}
-
-
-void Readin::SetCMNumber(int n)
-{
-    nCM = n;
-}
-
-
-void Readin::SetBKNumber(int n)
-{
-    nBK = n;
 }
 
