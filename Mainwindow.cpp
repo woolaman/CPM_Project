@@ -756,8 +756,8 @@ void MainWindow::ReStoreData()
             quint16 y = data[1][i];
             quint16 e = data[2][i];
 
-            x = std::round(factor*x/e*nPixel) - bias;
-            y = std::round(factor*y/e*nPixel) - bias;
+            x = qRound(factor*x/e*nPixel) - bias;
+            y = qRound(factor*y/e*nPixel) - bias;
 
             if(0<x && x<nPixel && 0<y && y<nPixel && ADC_min<e && e< ADC_max)
             {
