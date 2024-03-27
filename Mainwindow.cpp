@@ -75,11 +75,11 @@ MainWindow::MainWindow(QWidget *parent)
     chart->legend()->setVisible(false);
 
     axisX->setRange(0, ADC_max);
-    axisX->setTickCount(ADC_max/10000+1);
+    //axisX->setTickCount(ADC_max/10000+1);
     axisX->setLabelFormat("%d");
 
     axisY->setRange(0, 100);
-    axisY->setTickCount(5+1);
+    //axisY->setTickCount(5+1);
     axisY->setLabelFormat("%d");
 
     chart->addAxis(axisY, Qt::AlignLeft);
@@ -211,6 +211,7 @@ void MainWindow::on_pushButton_readinData_clicked()
     LogOut("开始读入数据...");
     QString fName = ui->lineEdit_dataPath->text();
     fName.replace("\\", "/");
+    fName = fName.trimmed().remove(QChar('\"'));
     qDebug() << "fName = " << fName;
 
     ui->progressBar_readinData->setMinimum(0);
@@ -262,7 +263,10 @@ void MainWindow::on_pushButton_setEW_clicked()
         while (!in.atEnd())
         {
             in >> x >> y >> e;
-            m_BK->Fill(x, y, e);
+            if(xmin<x && x<xmax && ymin<y && y<ymax && 0<e && e<ADC_max)
+            {
+                m_BK->Fill(x, y, e);
+            }
         }
         file.close();
     }
@@ -325,7 +329,7 @@ void MainWindow::on_pushButton_segment_clicked()
 {
     LogOut("开始分割...");
     imgFlag = 0;
-    m_BK->Segment("FindMaximum");
+    m_BK->Segment(segmentMethod);
     ShowPeaks(m_BK->GetMap(), m_BK->GetPeakTable());
 }
 
@@ -334,6 +338,7 @@ void MainWindow::on_pushButton_segment_clicked()
 void MainWindow::on_pushButton_genPositionLUT_clicked()
 {
     m_BK->GenPositionLUT();
+    QMessageBox::information(this, "位置校正表", "位置查找表已生成。");
 }
 
 
@@ -342,6 +347,7 @@ void MainWindow::on_pushButton_genEnergyLUT_clicked()
     peakE = ui->lineEdit_peakEnergy->text().toDouble();
     m_BK->CalRecEHist();
     m_BK->GenEnergyLUT();
+    QMessageBox::information(this, "能量校正表", "能量校正表已生成。");
 }
 
 
@@ -367,9 +373,7 @@ void MainWindow::ShowADCHist(int peakLoc)
     int n = ui->lineEdit_rowID->text().toInt();
     int crystalID = n*nCrystal + m;
 
-    Crystal* aCrystal = m_BK->GetCrystal(crystalID);
-    Histogram* ADCHist = aCrystal->GetADCHist();
-
+    Histogram* ADCHist = m_BK->GetCrystal(crystalID)->GetADCHist();
     ADCHist->Smooth();
 
     QVector<QPointF> points;
@@ -392,6 +396,7 @@ void MainWindow::ShowADCHist(int peakLoc)
         peakLine->replace(1, peakLoc, ADCHist->GetPeak().y());
     }
 
+    axisX->setRange(ADC_min, ADC_max);
     axisY->setRange(0, ADCHist->GetPeak().y()*1.1);
 
     QPixmap pixmap = chartView->grab();
@@ -587,8 +592,6 @@ void MainWindow::on_pushButton_writePeaks_clicked()
 
 void MainWindow::on_pushButton_calEnergyResolution_clicked()
 {
-    qDebug() << "calculate ER map.";
-
     // 计算单根分辨率
     // 画单根分辨率map 在label_floodmap
     cv::Mat_<qreal> ERMat(nCrystal, nCrystal);
@@ -758,25 +761,39 @@ void MainWindow::UpdateProgressBar(int pos)
 
 void MainWindow::ReStoreData()
 {
-    auto data = dataObject->GetData();
+    QString fName = currentPath + "Data/data.bin";
+    QFile ofile(fName);
 
-    int nEvts = data[0].size();
-    for (int i = 0; i < nEvts; ++i)
+    if (ofile.open(QIODevice::WriteOnly))
     {
-        quint16 x = data[0][i];
-        quint16 y = data[1][i];
-        quint16 e = data[2][i];
+        QDataStream out(&ofile);
 
-        quint16 xx = std::round(factor*x/e*nPixel) - bias;
-        quint16 yy = std::round(factor*y/e*nPixel) - bias;
+        auto data = dataObject->GetData();
+        int nEvts = data[0].size();
+        qDebug() << "nEvts = " << nEvts;
 
-        if(xmin<xx && xx<xmax && ymin<yy && yy<ymax && 0<e && e<ADC_max)
+        for (int i = 0; i < nEvts; ++i)
         {
-            m_BK->Fill(xx, yy, e);
+            quint16 x = data[0][i];
+            quint16 y = data[1][i];
+            quint16 e = data[2][i];
+
+            quint16 xx = std::round(factor*x/e*nPixel) - bias;
+            quint16 yy = std::round(factor*y/e*nPixel) - bias;
+
+            if(0<xx && xx<nPixel && 0<yy && yy<nPixel && ADC_min<e && e< ADC_max)
+            {
+                out << xx << yy << e;
+            }
         }
+        ofile.close();
+    }
+    else
+    {
+        qDebug() << "Readout file fail to create.";
+        return;
     }
 
-    QString fName = currentPath + "Data/data.bin";
-    m_BK->SaveToFile(fName);
+    QMessageBox::information(this, "读入数据", "读入数据完成。");
 }
 

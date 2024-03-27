@@ -307,7 +307,7 @@ void Block::Segment2() // maximum method to find peaks
     QVector<cv::Point> peaks;
     for (int i = 0; i < crystalNum; ++i)
     {
-        double minVal, maxVal;
+        qreal minVal, maxVal;
         cv::Point minLoc, maxLoc;
         cv::minMaxLoc(I1, &minVal, &maxVal, &minLoc, &maxLoc);
 
@@ -376,32 +376,38 @@ void Block::ManualAdjust(QPoint pos)
 void Block::CalSegResult()
 {
     //step 4, 开始分割, //计算像素点属于哪个峰
-    cv::Mat_<quint16> seg1(nPixel, nPixel); // 列信息
-    cv::Mat_<quint16> seg2(nPixel, nPixel); // 行信息
+    cv::Mat_<quint16> seg1(nPixel, nPixel); // 行信息
+    cv::Mat_<quint16> seg2(nPixel, nPixel); // 列信息
 
     for (int i = 0; i < nPixel; ++i)
     {
         for (int j = 0; j < nPixel; ++j)
         {
             cv::Mat_<qreal> dis(nCrystal, nCrystal);
-            for (int m = 0; m < nCrystal; ++m)
+
+            for (int iRow = 0; iRow < nCrystal; ++iRow)
             {
-                for (int n = 0; n < nCrystal; ++n)
+                for (int iCol = 0; iCol < nCrystal; ++iCol)
                 {
-                    cv::Point2f p(m_pt(m, n)[0], m_pt(m, n)[1]);
-                    dis(m, n) = cv::norm(p-cv::Point2f(i, j));
+                    cv::Point2f p(m_pt(iRow, iCol)[0], m_pt(iRow, iCol)[1]);
+                    dis(iRow, iCol) = cv::norm(cv::Point2f(j, i)-p);
                 }
             }
 
             cv::Point min_loc;
             cv::minMaxLoc(dis, NULL, NULL, &min_loc, NULL);
-            seg1(i, j) = min_loc.x;
-            seg2(i, j) = min_loc.y;
+            seg1(i, j) = min_loc.y;
+            seg2(i, j) = min_loc.x;
         }
     }
 
-    cv::Mat_<quint16> segr = seg2*nCrystal + seg1;
+    cv::Mat_<quint16> segr = seg1*nCrystal + seg2;
     cv::Mat_<quint8> edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
+    cv::Mat_<qreal> I4 = m_I0.clone();
+
+    qreal max_val;
+    cv::minMaxLoc(m_I0, NULL, &max_val, NULL, NULL);
+
     for (int i = 1; i < nPixel-1; ++i)
     {
         for (int j = 1; j < nPixel-1; ++j)
@@ -412,20 +418,6 @@ void Block::CalSegResult()
             if(id0!=id1 || id0!=id2)
             {
                 edge(i, j) = 1;
-            }
-        }
-    }
-
-    qreal max_val;
-    cv::minMaxLoc(m_I0, NULL, &max_val, NULL, NULL);
-
-    cv::Mat_<qreal> I4 = m_I0.clone();
-    for (int i = 0; i < nPixel; ++i)
-    {
-        for (int j = 0; j < nPixel; ++j)
-        {
-            if( edge(i, j) == 1 )
-            {
                 I4(i, j) = max_val*1.1;
             }
         }
@@ -459,7 +451,8 @@ void Block::CalRecEHist()
         quint16 y = m_yList[i];
         quint16 e = m_eList[i];
 
-        if(xmin<x && x<xmax && ymin<y && y<ymax && m_EW_min<e && e<m_EW_max)
+        //if(xmin<x && x<xmax && ymin<y && y<ymax && m_EW_min<e && e<m_EW_max)
+        if(xmin<x && x<xmax && ymin<y && y<ymax)
         {
             quint16 ID = m_segr(y, x);
             m_crystals[ID]->Fill(e);
@@ -472,6 +465,7 @@ void Block::CalRecEHist()
         m_recEHist->Add(aCrystal->GetRecEHist());
     }
 
+    m_recEHist->Smooth();
     m_ER = m_recEHist->GetResolution();
 }
 
