@@ -32,7 +32,6 @@ public:
     void ShowImage(cv::Mat_<qreal> I);
     void ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt);
     void ShowADCHist(int peakLoc=-1);
-    void LogOut(QString str);
 
 
 private slots:
@@ -66,6 +65,9 @@ private slots:
 private:
     Ui::MainWindow* ui;
 
+    Readin* dataObject;
+    Block* m_BK;
+
     //oooooooOOOOOOOOOoooooooooooo // 能谱相关
     QLineSeries* eHistLine;
     QLineSeries* EWLeftLine;
@@ -81,12 +83,6 @@ private:
 
     // 0-floodmap, 1-calPeaks, 2-calOnePeak
     quint8 imgFlag = 0;
-
-    QFile* logFile;
-    QTextStream* logOutStream;
-
-    Readin* dataObject;
-    Block* m_BK;
 };
 
 #endif // MAINWINDOW_H

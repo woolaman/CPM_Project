@@ -81,28 +81,6 @@ void Block::Fill(quint16 x, quint16 y, quint16 e)
 }
 
 
-void Block::SaveToFile(QString fName)
-{
-    QFile ofile(fName);
-    if (ofile.open(QIODevice::WriteOnly))
-    {
-        QDataStream out(&ofile);
-        for (int i = 0; i < m_eList.size(); ++i)
-        {
-            out << m_xList[i] << m_yList[i] << m_eList[i];
-        }
-        ofile.close();
-    }
-    else
-    {
-        qDebug() << "Readout file fail to create.";
-        return;
-    }
-
-    qDebug() << "按 BK 保存文件完成。";
-}
-
-
 void Block::SetEW(int EW_min, int EW_max)
 {
     m_EW_min = EW_min;
@@ -112,7 +90,7 @@ void Block::SetEW(int EW_min, int EW_max)
 
 void Block::CalMap()
 {
-    qDebug() << "start to calculate floodmap beteen energy window.";
+    //qDebug() << "start to calculate floodmap beteen energy window.";
     for (int i = 0; i < m_eList.size(); ++i)
     {
         quint16 x = m_xList[i];
@@ -148,7 +126,6 @@ void Block::Segment1()
     cv::Mat U, S, Vt;
     cv::SVD::compute(m_I0, S, U, Vt); // 进行奇异值分解
 
-    //cv::Mat S1 = cv::Mat::zeros(m_I0.size(), CV_64FC1);
     cv::Mat S1 = cv::Mat::zeros(m_I0.size(), m_I0.type());
     S1.at<qreal>(0, 0) = S.at<qreal>(0, 0);
     cv::Mat I1 = U*S1*Vt;
@@ -209,9 +186,9 @@ void Block::Segment1()
                         cv::Point2f u(0, 0);
                         qreal d = 0;
                         int r = 6;
-                        for (int m = x.x-r; m <= x.x+r; ++m)
+                        for (int n = x.y-r; n <= x.y+r; ++n)
                         {
-                            for (int n = x.y-r; n <= x.y+r; ++n)
+                            for (int m = x.x-r; m <= x.x+r; ++m)
                             {
                                 if (cv::norm(x-cv::Point2f(m, n)) <= r)
                                 {
@@ -238,10 +215,8 @@ void Block::Segment1()
                 {
                     for (int j = 0; j < m_num2; ++j)
                     {
-                        m_pt(iRow*m_num2+i, iCol*m_num2+j)[0] +=
-                            std::round(c.x - pre_c.x);
-                        m_pt(iRow*m_num2+i, iCol*m_num2+j)[1] +=
-                            std::round(c.y - pre_c.y);
+                        m_pt(iRow*m_num2+i, iCol*m_num2+j)[0] += qRound(c.x - pre_c.x);
+                        m_pt(iRow*m_num2+i, iCol*m_num2+j)[1] += qRound(c.y - pre_c.y);
                     }
                 }
             }
@@ -262,17 +237,18 @@ void Block::Segment1()
                 cv::Point2f u(0, 0);
                 qreal d = 0;
 
-                int r = 5;
-                for (int i = x.x-r; i <= x.x+r; ++i)
+                int r = 6;
+                for (int n = x.y-r; n <= x.y+r; ++n)
                 {
-                    for (int j = x.y-r; j <= x.y+r; ++j)
+                    for (int m = x.x-r; m <= x.x+r; ++m)
                     {
-                        if (cv::norm(x-cv::Point2f(i, j)) < r)
+                        if (cv::norm(x-cv::Point2f(m, n)) <= r)
                         {
-                            qreal k = cv::norm(x-cv::Point2f(i, j))/pow((2*r+1), 2);
-                            qreal g = (1/sqrt(2*M_PI))*exp(-0.5*k);
-                            u += m_I0(j, i)*g*cv::Point2f(i, j);
-                            d += m_I0(j, i)*g;
+                            //qreal k = cv::norm(x-cv::Point2f(m, n))/pow((2*r+1), 2);
+                            //qreal g = (1/sqrt(2*M_PI))*exp(-0.5*k);
+                            qreal g = 1;
+                            u += m_I0(n, m)*g*cv::Point2f(m, n);
+                            d += m_I0(n, m)*g;
                         }
                     }
                 }
@@ -298,7 +274,7 @@ void Block::Segment2() // maximum method to find peaks
 {
     // 使用 OpenCV 的平滑函数对数据进行平滑处理
     cv::Mat_<qreal> I1;
-    cv::blur(m_I0, I1, cv::Size(3, 3));
+    cv::blur(m_I0, I1, cv::Size(5, 5));
 
     //cv::Mat_<qreal> I2;
     //cv::GaussianBlur(I1, I2, cv::Size(3, 3), 1, 1);
@@ -322,7 +298,7 @@ void Block::Segment2() // maximum method to find peaks
         {
             for (int m = m0-r; m <=m0+r ; ++m)
             {
-                if(cv::norm(maxLoc-cv::Point(m, n))<r)
+                if(cv::norm(maxLoc-cv::Point(m, n))<=r)
                 {
                     I1(n, m) = 0;
                 }
@@ -401,9 +377,9 @@ void Block::CalSegResult()
         }
     }
 
-    cv::Mat_<quint16> segr = seg1*nCrystal + seg2;
-    cv::Mat_<quint8> edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
-    cv::Mat_<qreal> I4 = m_I0.clone();
+    m_segr = seg1*nCrystal + seg2;
+    m_edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
+    m_segMap = m_I0.clone();
 
     qreal max_val;
     cv::minMaxLoc(m_I0, NULL, &max_val, NULL, NULL);
@@ -412,13 +388,13 @@ void Block::CalSegResult()
     {
         for (int j = 1; j < nPixel-1; ++j)
         {
-            int id0 = segr(i, j);
-            int id1 = segr(i+1, j);
-            int id2 = segr(i, j+1);
+            int id0 = m_segr(i, j);
+            int id1 = m_segr(i+1, j);
+            int id2 = m_segr(i, j+1);
             if(id0!=id1 || id0!=id2)
             {
-                edge(i, j) = 1;
-                I4(i, j) = max_val*1.1;
+                m_edge(i, j) = 1;
+                m_segMap(i, j) = max_val*1.1;
             }
         }
     }
@@ -432,31 +408,27 @@ void Block::CalSegResult()
     // 创建文件存储对象
     cv::FileStorage fs(fileName.toStdString(), cv::FileStorage::WRITE);
     fs.write("floodmap", m_I0); // 将I0 也写入
-    fs.write("edge", edge);   // 写入边界结果
-    fs.write("segr", segr);   // 写入矩阵数据
+    fs.write("edge", m_edge);   // 写入边界结果
+    fs.write("segr", m_segr);   // 写入矩阵数据
     fs.release();  // 关闭文件
-
-    m_segr = segr.clone();
-    m_edge = edge.clone();
-    m_segMap = I4.clone();
 }
 
 
 void Block::CalRecEHist()
 {
-    int nEvts = m_eList.size();
-    for (int i = 0; i < nEvts; ++i)
+    for (int i = 0; i < m_eList.size(); ++i)
     {
         quint16 x = m_xList[i];
         quint16 y = m_yList[i];
         quint16 e = m_eList[i];
 
-        //if(xmin<x && x<xmax && ymin<y && y<ymax && m_EW_min<e && e<m_EW_max)
-        if(xmin<x && x<xmax && ymin<y && y<ymax)
-        {
-            quint16 ID = m_segr(y, x);
-            m_crystals[ID]->Fill(e);
-        }
+        quint16 ID = m_segr(y, x);
+        m_crystals[ID]->Fill(e);
+        //if(m_EW_min<e && e<m_EW_max)
+        //{
+        //    quint16 ID = m_segr(y, x);
+        //    m_crystals[ID]->Fill(e);
+        //}
     }
 
     for (auto aCrystal : m_crystals)
@@ -464,9 +436,6 @@ void Block::CalRecEHist()
         aCrystal->CalRecEHist();
         m_recEHist->Add(aCrystal->GetRecEHist());
     }
-
-    m_recEHist->Smooth();
-    m_ER = m_recEHist->GetResolution();
 }
 
 
@@ -487,8 +456,8 @@ void Block::CalSegFOM()
             if ( ymin<i && i<ymax && xmin<j && j<xmax )
             {
                 qreal aN = m_I0(i, j);
-                totalEvts += aN;
                 pixelCounter++;
+                totalEvts += aN;        
 
                 if ( 1==m_edge(i, j) )
                 {
@@ -502,7 +471,7 @@ void Block::CalSegFOM()
         }
     }
 
-    qreal IR = 1.0*totalEvts/pixelCounter/(1.0*edgeEvts/edgeN);
+    m_IR = 1.0*totalEvts/pixelCounter/(1.0*edgeEvts/edgeN);
 
     QVector<qreal> RMS;
     for (int iCrystal=0; iCrystal<crystalNum; ++iCrystal)
@@ -529,10 +498,7 @@ void Block::CalSegFOM()
     }
 
     // 求所有晶体的平均RMS
-    qreal meanRMS = std::accumulate(RMS.begin(), RMS.end(), 0.0)/RMS.size();
-
-    m_IR = IR;
-    m_RMS = meanRMS;
+    m_RMS = std::accumulate(RMS.begin(), RMS.end(), 0.0)/RMS.size();
 }
 
 
@@ -574,8 +540,7 @@ void Block::GenEnergyLUT()
 
     for (int i = 0; i < crystalNum; ++i)
     {
-        qreal slope = m_crystals[i]->GetSlope();
-        outStream << slope;
+        outStream << m_crystals[i]->GetSlope();
     }
 
     outFile.close();
@@ -634,7 +599,8 @@ cv::Mat_<qreal> Block::GetSegMap()
 
 qreal Block::GetER()
 {
-    return m_ER;
+    m_recEHist->Smooth();
+    return m_recEHist->GetResolution();
 }
 
 

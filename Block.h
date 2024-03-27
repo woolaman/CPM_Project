@@ -17,7 +17,6 @@ public:
     void SetID(int ID);
 
     void Fill(quint16 x, quint16 y, quint16 e);
-    void SaveToFile(QString fName);
 
     void SetEW(int EW_min, int EW_max);
     void CalMap();
@@ -36,11 +35,11 @@ public:
     void GenEnergyLUT();
     void GenUniformityLUT();
 
-    cv::Mat_<qreal> GetMap();
     Crystal* GetCrystal(int ID);
     Histogram* GetADCHist();
     Histogram* GetRecEHist();
 
+    cv::Mat_<qreal> GetMap();
     cv::Mat_<cv::Vec2w> GetPeakTable();
     cv::Mat_<quint16> GetSegResult();
     cv::Mat_<qreal> GetSegMap();
@@ -48,6 +47,8 @@ public:
     qreal GetER();
     qreal GetIR();
     qreal GetRMS();
+
+    void Clear();
 
 
 private: // private members
@@ -73,7 +74,6 @@ private: // private members
     int m_num1;
     int m_num2;
 
-    qreal m_ER;
     qreal m_IR;
     qreal m_RMS;
 

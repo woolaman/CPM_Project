@@ -19,18 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    // 创建或打开日志文件（若不存在则会自动创建）
-    logFile = new QFile("log.txt");
-    if (logFile->open(QIODevice::WriteOnly))
-    {
-        logOutStream = new QTextStream(logFile);
-    }
-    else
-    {
-        qDebug() << "无法打开日志文件";
-    }
-
-    LogOut("程序初始化开始...");
+    qDebug() << "程序初始化开始...";
 
     ui->setupUi(this);
 
@@ -75,11 +64,11 @@ MainWindow::MainWindow(QWidget *parent)
     chart->legend()->setVisible(false);
 
     axisX->setRange(0, ADC_max);
-    //axisX->setTickCount(ADC_max/10000+1);
+    axisX->setTickCount(7);
     axisX->setLabelFormat("%d");
 
     axisY->setRange(0, 100);
-    //axisY->setTickCount(5+1);
+    axisY->setTickCount(6);
     axisY->setLabelFormat("%d");
 
     chart->addAxis(axisY, Qt::AlignLeft);
@@ -104,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->label_eHist->setPixmap(pixmap);
 
     ShowImage(cv::Mat::zeros(nPixel, nPixel, CV_64FC1));
-    LogOut("初始化完成。");
+    qDebug() << "初始化完成。";
 }
 
 
@@ -123,11 +112,8 @@ MainWindow::~MainWindow()
 
     delete dataObject;
     delete m_BK;
-
-    LogOut("程序关闭。");
-    delete logOutStream;
-    logFile->close();
     *************************/
+    qDebug() << "程序关闭。";
 }
 
 
@@ -136,14 +122,15 @@ cv::Mat MainWindow::GetColorMap(cv::Mat_<qreal> I)
 {
     cv::Mat_<quint8> scaledMap(I.size(), 0);
 
-    qreal max_val;
-    cv::minMaxLoc(I, NULL, &max_val, NULL, NULL);
+    qreal minVal, maxVal;
+    cv::Point minLoc, maxLoc;
+    cv::minMaxLoc(I, &minVal, &maxVal, &minLoc, &maxLoc);
 
     for (int i = 0; i < I.rows; ++i)
     {
         for (int j = 0; j < I.cols; ++j)
         {
-            scaledMap(i, j) = qRound(I(i, j)/max_val*255);
+            scaledMap(i, j) = qRound(I(i, j)/maxVal*255);
         }
     }
 
@@ -192,7 +179,7 @@ void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
             int x = pt(j, i)[0];
             int y = pt(j, i)[1];
 
-            int r = 2;
+            int r = 3;
             //painter.drawLine(x-r, y+r, x+r, y-r); // "/"
             //painter.drawLine(x-r, y-r, x+r, y+r); // "\"
             painter.drawLine(x-r, y, x+r, y); // "——"
@@ -208,7 +195,7 @@ void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
 
 void MainWindow::on_pushButton_readinData_clicked()
 {
-    LogOut("开始读入数据...");
+    qDebug() << "开始读入数据...";
     QString fName = ui->lineEdit_dataPath->text();
     fName.replace("\\", "/");
     fName = fName.trimmed().remove(QChar('\"'));
@@ -248,7 +235,7 @@ void MainWindow::on_pushButton_setEW_clicked()
     QString fName = currentPath + "Data/data.bin";
     if (!QFile::exists(fName))
     {
-        LogOut("文件不存在，请检查文件是否存在。");
+        qDebug() << "文件不存在，请检查文件是否存在。";
         return;
     }
 
@@ -272,7 +259,7 @@ void MainWindow::on_pushButton_setEW_clicked()
     }
     else
     {
-        LogOut("文件打开失败，请检查文件是否正确。");
+        qDebug() << "文件打开失败，请检查文件是否正确。";
         return;
     }
 
@@ -309,13 +296,13 @@ void MainWindow::on_pushButton_setEW_clicked()
 
     ui->lineEdit_minEW->setText(QString::number(minEW));
     ui->lineEdit_maxEW->setText(QString::number(maxEW));
-    LogOut("画出整个BK能谱，并自动生成峰值左右各25%能窗参数。");
+    qDebug() << "画出整个BK能谱，并自动生成峰值左右各25%能窗参数。";
 
     // 参照能窗的设置参数，筛选数据
     m_BK->SetEW(minEW, maxEW);
     m_BK->CalMap();
     ShowImage(m_BK->GetMap());
-    LogOut("Generate I0. ");
+    qDebug() << "Generate I0. ";
 
     //peakE = ui->lineEdit_peakEnergy->text().toInt();
 
@@ -327,7 +314,7 @@ void MainWindow::on_pushButton_setEW_clicked()
 
 void MainWindow::on_pushButton_segment_clicked()
 {
-    LogOut("开始分割...");
+    qDebug() << "开始分割...";
     imgFlag = 0;
     m_BK->Segment(segmentMethod);
     ShowPeaks(m_BK->GetMap(), m_BK->GetPeakTable());
@@ -372,10 +359,7 @@ void MainWindow::ShowADCHist(int peakLoc)
     int m = ui->lineEdit_colID->text().toInt();
     int n = ui->lineEdit_rowID->text().toInt();
     int crystalID = n*nCrystal + m;
-
     Histogram* ADCHist = m_BK->GetCrystal(crystalID)->GetADCHist();
-    ADCHist->Smooth();
-
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
     {
@@ -576,7 +560,7 @@ void MainWindow::on_pushButton_writePeaks_clicked()
     QFile file(fName_LUT_E);
     if (!file.open(QIODevice::WriteOnly))
     {
-        LogOut("文件打开失败，无法生成能量查找表。");
+        qDebug() << "文件打开失败，无法生成能量查找表。";
         return;
     }
 
@@ -594,6 +578,7 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
 {
     // 计算单根分辨率
     // 画单根分辨率map 在label_floodmap
+    qDebug() << "Calculate single crystal's energy resolution.";
     cv::Mat_<qreal> ERMat(nCrystal, nCrystal);
     for (int iRow = 0; iRow < nCrystal; ++iRow)
     {
@@ -623,8 +608,9 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     ui->label_floodmap->setPixmap(aPixmap);
 
     // 计算总分辨率
-    Histogram* eHist = m_BK->GetRecEHist();
+    qDebug() << "Calculate the whole block energy resolution.";
     qreal totalER = m_BK->GetER()*100;
+    Histogram* eHist = m_BK->GetRecEHist();
 
     // 画总能谱在 label_ehist
     QVector<QPointF> points;
@@ -659,7 +645,8 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     painter.drawText(QPoint(300, 100), QString::number(totalER, 'f', 2) + " %");
 
     ui->label_eHist->setPixmap(pixmap);
-    LogOut("total energy resolution is " + QString::number(totalER, 'f', 2) + " %.");
+    qDebug() << "total energy resolution is " <<
+        QString::number(totalER, 'f', 2) + " %.";
 }
 
 
@@ -717,7 +704,7 @@ void MainWindow::on_pushButton_calUniformity_clicked()
     }
     else
     {
-        LogOut("均匀性查找表生成失败。");
+        qDebug() << "均匀性查找表生成失败。";
     }
 }
 
@@ -741,15 +728,6 @@ void MainWindow::on_lineEdit_maxEW_editingFinished()
 
     QPixmap pixmap = chartView->grab();
     ui->label_eHist->setPixmap(pixmap);
-}
-
-
-void MainWindow::LogOut(QString str)
-{
-    QString s0 = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
-    QString s1 = s0 + "  " + str;
-    *logOutStream << s1 << Qt::endl;
-    qDebug() << s1;
 }
 
 

@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QMap>
 #include <QFile>
+#include <QtDebug>
 
 #include "Parameters.h"
 
@@ -47,18 +48,53 @@ QString fName_LUT_U;
 int peakE;
 
 
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QByteArray localMsg = msg.toLocal8Bit();
+    const char *file = context.file ? context.file : "";
+    const char *function = context.function ? context.function : "";
+    switch (type) {
+    case QtDebugMsg:
+        fprintf(stderr, "Debug: %s (%s:%u, %s)\n",
+                localMsg.constData(), file, context.line, function);
+        break;
+    case QtInfoMsg:
+        fprintf(stderr, "Info: %s (%s:%u, %s)\n",
+                localMsg.constData(), file, context.line, function);
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "Warning: %s (%s:%u, %s)\n",
+                localMsg.constData(), file, context.line, function);
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "Critical: %s (%s:%u, %s)\n",
+                localMsg.constData(), file, context.line, function);
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n",
+                localMsg.constData(), file, context.line, function);
+        break;
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
+    qInstallMessageHandler(myMessageOutput);
+
     QApplication app(argc, argv);
 
-    QDir dir(QCoreApplication::applicationDirPath()); // 获取当前程序目录
+    // 获取当前程序目录
+    QDir dir(QCoreApplication::applicationDirPath());
     currentPath = dir.absolutePath() + "/";
+
+    qInfo() << "Current path = " << currentPath;
 
     QString fullName = currentPath + "config.par";
     QFile file(fullName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        qDebug() << "unopen parameter file!";
+        qFatal("Fail to open parameter file!");
         return 1;
     }
 
@@ -92,7 +128,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            qDebug() << "Invalid format!";
+            qWarning() << "Invalid format!";
         }
     }
 
@@ -146,7 +182,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            qDebug() << "Failed to create data directory: " <<
+            qCritical() << "Failed to create data directory: " <<
                 targetDirectoryPath;
         }
     }
@@ -154,5 +190,6 @@ int main(int argc, char *argv[])
     MainWindow window;
     window.setWindowTitle("CPM: crystal position map program");
     window.show();
+
     return app.exec();
 }

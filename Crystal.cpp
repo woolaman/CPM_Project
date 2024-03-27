@@ -19,8 +19,8 @@ Crystal::Crystal(int ID)
 
 Crystal::~Crystal()
 {
-    delete m_ADCHist;
-    delete m_recEHist;
+    //delete m_ADCHist;
+    //delete m_recEHist;
 }
 
 
@@ -52,13 +52,14 @@ void Crystal::Fill(quint16 e)
 void Crystal::CalRecEHist()
 {
     m_ADCHist->SetCutValue(ADC_cutValue);
+
+    m_ADCHist->Smooth(10, 2);
+
     qreal peakLoc = m_ADCHist->GetPeak().x();
     m_slope = peakE/peakLoc;
-
     for (auto var : m_eList)
     {
-        qreal recE = m_slope * var;
-        m_recEHist->Fill(recE);
+        m_recEHist->Fill(m_slope * var);
     }
 }
 
@@ -90,6 +91,7 @@ void Crystal::SetSlope(qreal x)
 
 qreal Crystal::GetER()
 {
+    m_recEHist->Smooth();
     return m_recEHist->GetResolution();
 }
 

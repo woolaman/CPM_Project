@@ -32,15 +32,9 @@ void Histogram::Fill(qreal value)
 {
     int idx = qFloor( (value-m_xmin)/m_binWidth );
 
-    if(0<=idx || idx<m_nBins)
+    if(0<=idx && idx<m_nBins)
     {
         m_binContents[idx] += 1;
-    }
-    else
-    {
-        qDebug() << "idx = " << idx;
-        qDebug() << "value = " << value;
-        qDebug() << "m_xmin = " << m_xmin << ", m_binWith = " << m_binWidth;
     }
 }
 
@@ -65,7 +59,7 @@ qreal Histogram::GetBinContent(int iBin)
 
 void Histogram::Smooth(int windowSize)
 {
-    // 将 std::vector 转换为 cv::Mat
+    // 将 QVector 转换为 cv::Mat
     cv::Mat_<qreal> data0(1, m_nBins);
     for (int i = 0; i < m_nBins; ++i)
     {
@@ -103,8 +97,7 @@ void Histogram::Add(Histogram* aHist)
 {
     for (int i = 0; i < m_nBins; ++i)
     {
-        qreal binH = aHist->GetBinContent(i);
-        m_binContents[i] += binH;
+        m_binContents[i] += aHist->GetBinContent(i);
     }
 }
 
@@ -112,8 +105,8 @@ void Histogram::Add(Histogram* aHist)
 QPointF Histogram::GetPeak()
 {
     int cutIdx = qRound((m_cutValue-m_xmin)/m_binWidth);
-    int peakIdx = std::max_element(m_binContents.begin()+cutIdx,
-                                   m_binContents.end()) - m_binContents.begin();
+    int peakIdx = std::max_element( m_binContents.begin() + cutIdx,
+                                   m_binContents.end() ) - m_binContents.begin();
     qreal x = m_binCenters[peakIdx];
     qreal y = m_binContents[peakIdx];
     return QPointF(x, y);
@@ -123,8 +116,8 @@ QPointF Histogram::GetPeak()
 qreal Histogram::GetResolution()
 {
     int cutIdx = qRound((m_cutValue-m_xmin)/m_binWidth);
-    int peakIdx = std::max_element(m_binContents.begin()+cutIdx,
-                                   m_binContents.end()) - m_binContents.begin();
+    int peakIdx = std::max_element( m_binContents.begin() + cutIdx,
+                                   m_binContents.end() ) - m_binContents.begin();
     qreal peak_x = m_binCenters[peakIdx];
     qreal peak_y = m_binContents[peakIdx];
 
@@ -145,6 +138,16 @@ qreal Histogram::GetResolution()
     m_leftValue = m_binCenters[leftIdx];
     m_rightValue = m_binCenters[rightIdx];
     qreal FWHM = m_rightValue - m_leftValue; // 半高宽
+
+    /************************************************
+    qDebug() << "peak x = " << peak_x << "peak y = " << peak_y;
+    qDebug() << "half max = " << halfMax;
+    qDebug() << "left x = " << m_leftValue <<
+        "left height = " << m_binContents[leftIdx];
+    qDebug() << "right x = " << m_rightValue <<
+        "right height = " << m_binContents[rightIdx];
+    qDebug() << "FWHM = " << FWHM;
+    **************************************************/
 
     return FWHM/peak_x;
 }
