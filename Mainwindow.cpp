@@ -250,7 +250,7 @@ void MainWindow::on_pushButton_setEW_clicked()
         while (!in.atEnd())
         {
             in >> x >> y >> e;
-            if(xmin<x && x<xmax && ymin<y && y<ymax && 0<e && e<ADC_max)
+            if(xmin<x && x<xmax && ymin<y && y<ymax && ADC_min<e && e<ADC_max)
             {
                 m_BK->Fill(x, y, e);
             }
@@ -756,12 +756,12 @@ void MainWindow::ReStoreData()
             quint16 y = data[1][i];
             quint16 e = data[2][i];
 
-            quint16 xx = std::round(factor*x/e*nPixel) - bias;
-            quint16 yy = std::round(factor*y/e*nPixel) - bias;
+            x = std::round(factor*x/e*nPixel) - bias;
+            y = std::round(factor*y/e*nPixel) - bias;
 
-            if(0<xx && xx<nPixel && 0<yy && yy<nPixel && ADC_min<e && e< ADC_max)
+            if(0<x && x<nPixel && 0<y && y<nPixel && ADC_min<e && e< ADC_max)
             {
-                out << xx << yy << e;
+                out << x << y << e;
             }
         }
         ofile.close();

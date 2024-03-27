@@ -106,7 +106,8 @@ void Block::CalMap()
 
 
 void Block::Segment(QString method)
-{ 
+{
+    qDebug() << "segment method is " << segmentMethod;
     if(method=="SVD")
     {
         Segment1();
@@ -123,6 +124,7 @@ void Block::Segment1()
 {
     // 自动寻峰, 奇异值分解, 寻找规则峰位作为平均值移动算法的迭代初始位置
     // 平均值移动算法，寻找peaks
+    qDebug() << "SVD start.";
     cv::Mat U, S, Vt;
     cv::SVD::compute(m_I0, S, U, Vt); // 进行奇异值分解
 
