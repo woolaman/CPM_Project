@@ -164,3 +164,12 @@ qreal Histogram::GetRightValue()
     return m_rightValue;
 }
 
+
+void Histogram::Clear()
+{
+    for (auto& var : m_binContents)
+    {
+        var = 0;
+    }
+}
+

@@ -95,3 +95,11 @@ qreal Crystal::GetER()
     return m_recEHist->GetResolution();
 }
 
+
+void Crystal::Clear()
+{
+    m_eList.clear();
+    m_ADCHist->Clear();
+    m_recEHist->Clear();
+}
+

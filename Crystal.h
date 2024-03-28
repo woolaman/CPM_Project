@@ -28,6 +28,8 @@ public:
 
     qreal GetER();
 
+    void Clear();
+
 
 private:
     int m_ID;

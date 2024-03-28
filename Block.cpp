@@ -105,15 +105,14 @@ void Block::CalMap()
 }
 
 
-void Block::Segment(QString method)
+void Block::Segment(SegmentMethod method)
 {
-    qDebug() << "segment method is " << segmentMethod;
-    if(method=="SVD")
+    if(method==SegmentMethod::SVD)
     {
         Segment1();
     }
 
-    if(method=="FindMaximum")
+    if(method==SegmentMethod::FindMaximum)
     {
         Segment2();
     }
@@ -615,6 +614,22 @@ qreal Block::GetIR()
 qreal Block::GetRMS()
 {
     return m_RMS;
+}
+
+
+void Block::Clear()
+{
+    m_xList.clear();
+    m_yList.clear();
+    m_eList.clear();
+
+    for (auto aCrystal : m_crystals)
+    {
+        aCrystal->Clear();
+    }
+
+    m_ADCHist->Clear();
+    m_recEHist->Clear();
 }
 
 

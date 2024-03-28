@@ -4,6 +4,7 @@
 #include <opencv2/core.hpp>
 
 #include "Crystal.h"
+#include "Parameters.h"
 
 
 class Block
@@ -21,7 +22,7 @@ public:
     void SetEW(int EW_min, int EW_max);
     void CalMap();
 
-    void Segment(QString method);
+    void Segment(SegmentMethod method);
     void Segment1(); // SVD method
     void Segment2(); // find maximum value method
 

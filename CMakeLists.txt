@@ -38,6 +38,9 @@ set(PROJECT_SOURCES
     PETRing.cpp
     Module.h
     Module.cpp
+    ParameterForm.h
+    ParameterForm.cpp
+    ParameterForm.ui
 )
 
 qt_add_executable(CPM

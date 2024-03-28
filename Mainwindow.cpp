@@ -316,7 +316,7 @@ void MainWindow::on_pushButton_segment_clicked()
 {
     qDebug() << "开始分割...";
     imgFlag = 0;
-    m_BK->Segment(segmentMethod);
+    m_BK->Segment(segMethod);
     ShowPeaks(m_BK->GetMap(), m_BK->GetPeakTable());
 }
 
@@ -756,8 +756,8 @@ void MainWindow::ReStoreData()
             quint16 y = data[1][i];
             quint16 e = data[2][i];
 
-            x = qRound(factor*x/e*nPixel) - bias;
-            y = qRound(factor*y/e*nPixel) - bias;
+            x = qRound(enlargeFactor*x/e*nPixel) - bias;
+            y = qRound(enlargeFactor*y/e*nPixel) - bias;
 
             if(0<x && x<nPixel && 0<y && y<nPixel && ADC_min<e && e< ADC_max)
             {

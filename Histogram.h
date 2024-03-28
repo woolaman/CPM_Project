@@ -30,6 +30,9 @@ public:
     qreal GetLeftValue();
     qreal GetRightValue();
 
+    void Clear();
+
+
 private:
     int m_nBins;
     qreal m_xmin;
