@@ -46,6 +46,7 @@ enum class SegmentMethod
     SVD = 1,
     FindMaximum = 2,
 };
+
 extern SegmentMethod segMethod;
 
 

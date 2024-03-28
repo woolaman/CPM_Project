@@ -1,4 +1,4 @@
-#ifndef PARAMETERFORM_H
+﻿#ifndef PARAMETERFORM_H
 #define PARAMETERFORM_H
 
 #include <QWidget>
@@ -17,10 +17,6 @@ class ParameterForm : public QWidget
 public:
     explicit ParameterForm(QWidget *parent = nullptr);
     ~ParameterForm();
-
-
-signals:
-    void Start();
 
 
 private slots:

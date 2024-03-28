@@ -1,14 +1,13 @@
-﻿#include "Mainwindow.h"
-#include "ParameterForm.h"
-
-#include <QApplication>
+﻿#include <QApplication>
 #include <QString>
 #include <QDir>
 #include <QMap>
 #include <QFile>
 #include <QtDebug>
+#include <QScreen>
 
 #include "Parameters.h"
+#include "ParameterForm.h"
 
 
 int nCM = 20;
@@ -114,17 +113,14 @@ int main(int argc, char *argv[])
         }
     }
 
-    ParameterForm parWindow;
-    parWindow.setWindowTitle("Parameters Setup Window");
-    parWindow.show();
+    ParameterForm* parWindow = new ParameterForm();
+    parWindow->setWindowTitle("Parameters Setup Window");
+    parWindow->move(60, 60);
+    parWindow->show();
 
-
-
-
-
-    MainWindow mainWindow;
-    mainWindow.setWindowTitle("CPM: crystal position map program");
-    mainWindow.show();
+    // QScreen* screen = QGuiApplication::primaryScreen();
+    // int height = screen->geometry().height();
+    // int width = screen->geometry().width();
 
     return app.exec();
 }

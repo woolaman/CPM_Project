@@ -1,7 +1,7 @@
-#include "ParameterForm.h"
+﻿#include "ParameterForm.h"
 #include "ui_ParameterForm.h"
 #include "Parameters.h"
-
+#include "Mainwindow.h"
 
 ParameterForm::ParameterForm(QWidget *parent)
     : QWidget(parent)
@@ -211,6 +211,14 @@ void ParameterForm::on_pushButton_start_clicked()
     crystalNum = nCrystal * nCrystal;
     ADC_binWidth = (ADC_max-ADC_min)/ADC_nBins;
     recE_binWidth = (recE_max-recE_min)/recE_nBins;
-    emit Start();
+
+    MainWindow* mainWindow = new MainWindow(this);
+    mainWindow->setWindowTitle("CPM: crystal position map program");
+    int x = this->pos().x();
+    int y = this->pos().y();
+    int width = this->geometry().width();
+    // int height = this->geometry().height();
+    mainWindow->move(x+width+20, y+10);
+    mainWindow->show();
 }
 
