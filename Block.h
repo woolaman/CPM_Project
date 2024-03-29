@@ -53,11 +53,12 @@ public:
 
 
 private: // private members
+    int m_ID;
+
     QVector<quint16> m_xList;
     QVector<quint16> m_yList;
     QVector<quint16> m_eList;
 
-    int m_ID;
     QVector<Crystal*> m_crystals;
 
     int m_EW_min;
@@ -67,10 +68,11 @@ private: // private members
     Histogram* m_recEHist;
 
     cv::Mat_<qreal> m_I0;
-    cv::Mat_<cv::Vec2w> m_pt;
     cv::Mat_<quint16> m_segr;
     cv::Mat_<quint8> m_edge;
     cv::Mat_<qreal> m_segMap;
+
+    cv::Mat_<cv::Vec2w> m_pt;
 
     int m_num1;
     int m_num2;

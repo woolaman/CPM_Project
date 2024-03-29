@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>130</x>
-      <y>20</y>
+      <y>30</y>
       <width>300</width>
       <height>60</height>
      </rect>
@@ -39,7 +39,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>20</y>
+      <y>30</y>
       <width>100</width>
       <height>60</height>
      </rect>
@@ -57,7 +57,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>170</y>
+      <y>208</y>
       <width>120</width>
       <height>60</height>
      </rect>
@@ -74,8 +74,8 @@
    <widget class="QLabel" name="label_chooseBK">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>130</y>
+      <x>50</x>
+      <y>160</y>
       <width>80</width>
       <height>36</height>
      </rect>
@@ -96,9 +96,9 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>250</y>
-      <width>401</width>
-      <height>41</height>
+      <y>290</y>
+      <width>400</width>
+      <height>48</height>
      </rect>
     </property>
     <property name="font">
@@ -114,9 +114,9 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>310</y>
+      <y>358</y>
       <width>401</width>
-      <height>51</height>
+      <height>48</height>
      </rect>
     </property>
     <property name="font">
@@ -132,9 +132,9 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>430</y>
+      <y>426</y>
       <width>401</width>
-      <height>41</height>
+      <height>48</height>
      </rect>
     </property>
     <property name="font">
@@ -168,9 +168,9 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>550</y>
+      <y>548</y>
       <width>132</width>
-      <height>40</height>
+      <height>48</height>
      </rect>
     </property>
     <property name="font">
@@ -276,7 +276,7 @@
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>120</y>
+      <y>130</y>
       <width>271</width>
       <height>71</height>
      </rect>
@@ -366,7 +366,7 @@
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>190</y>
+      <y>220</y>
       <width>271</width>
       <height>46</height>
      </rect>
@@ -453,7 +453,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>80</y>
+      <y>90</y>
       <width>400</width>
       <height>20</height>
      </rect>
@@ -521,7 +521,7 @@
       <x>30</x>
       <y>620</y>
       <width>132</width>
-      <height>40</height>
+      <height>48</height>
      </rect>
     </property>
     <property name="font">
@@ -664,87 +664,6 @@
     <property name="text">
      <string>计算能量分辨率</string>
     </property>
-   </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>380</y>
-      <width>401</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label_peakEnergy">
-       <property name="minimumSize">
-        <size>
-         <width>120</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>160</width>
-         <height>200</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>峰位能量</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEdit_peakEnergy">
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>511</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_E_Unit">
-       <property name="minimumSize">
-        <size>
-         <width>48</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>keV</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </widget>
    <widget class="QPushButton" name="pushButton_calUniformity">
     <property name="geometry">

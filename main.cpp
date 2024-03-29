@@ -10,42 +10,42 @@
 #include "ParameterForm.h"
 
 
-int nCM = 20;
-int nBK = 5;
-int nPixel = 512;
-int nCrystal = 26;
-int crystalNum = nCrystal*nCrystal;
+int nCM;
+int nBK;
+int nPixel;
+int nCrystal;
+int crystalNum;
 
-qreal enlargeFactor = 1.06;
-int bias = 58;
+qreal enlarge;
+int bias;
 
-int xmin = 0;
-int xmax = 512;
-int ymin = 0;
-int ymax = 512;
+int xmin;
+int xmax;
+int ymin;
+int ymax;
 
-qreal EW_width = 0.25;
+qreal EW_width;
 
-int ADC_min = 0;
-int ADC_max = 60000;
-int ADC_nBins = 600;
-qreal ADC_binWidth = (ADC_max - ADC_min) / ADC_nBins;
-int ADC_cutValue = 15000;
+SegmentMethod segMethod;
 
-qreal recE_min = 0;
-qreal recE_max = 1600;
-int recE_nBins = 800;
-qreal recE_binWidth = (recE_max - recE_min) / recE_nBins;
-qreal recE_cutValue = 200;
+qreal peakE;
+
+int ADC_min;
+int ADC_max;
+int ADC_nBins;
+qreal ADC_binWidth;
+int ADC_cutValue;
+
+qreal recE_min;
+qreal recE_max;
+int recE_nBins;
+qreal recE_binWidth;
+qreal recE_cutValue;
 
 QString currentPath;
-QString fName_LUT_P = "LUT_Position.bin";
-QString fName_LUT_E = "LUT_Energy.bin";
-QString fName_LUT_U = "LUT_Uniformity.bin";
-
-qreal peakE = 511;
-
-SegmentMethod segMethod = SegmentMethod::SVD;
+QString fName_LUT_P;
+QString fName_LUT_E;
+QString fName_LUT_U;
 
 
 void myMessageOutput(QtMsgType type,
@@ -113,14 +113,139 @@ int main(int argc, char *argv[])
         }
     }
 
+
+    // readin parameters
+    QString fName = currentPath + ".config.par";
+    QFile file(fName);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream in(&file);
+
+        QMap<QString, QString> pars;
+
+        while (!in.atEnd())
+        {
+            QString line = in.readLine();
+
+            if(line.isEmpty() || line.startsWith("#"))
+            {
+                continue;
+            }
+
+            if(line.contains("#"))
+            {
+                QStringList ss = line.split("#");
+                line = ss[0];
+            }
+
+            // 去除首尾空格，并按等号进行分割
+            QStringList parts = line.simplified().split("=");
+
+            if (2 == parts.size())
+            {
+                QString key = parts[0].trimmed(); // 去除键的首尾空格
+                QString value = parts[1].trimmed(); // 去除值的首尾空格
+                pars[key] = value;
+            }
+            else
+            {
+                qWarning() << "Invalid format!";
+            }
+        }
+
+        nCM = pars["nCM"].toInt();
+        nBK = pars["nBK"].toInt();
+        nPixel = pars["nPixel"].toInt();
+        nCrystal = pars["nCrystal"].toInt();
+        crystalNum = nCrystal * nCrystal;
+
+        enlarge = pars["enlarge"].toDouble(); // 调整点阵大小
+        bias = pars["bias"].toInt();  // 调整点阵位置
+
+        xmin = pars["xmin"].toInt();
+        xmax = pars["xmax"].toInt();
+        ymin = pars["ymin"].toInt();
+        ymax = pars["ymax"].toInt();
+
+        EW_width = pars["EW_width"].toDouble();
+
+        switch (pars["segmentMethod"].toInt())
+        {
+        case 1:
+            segMethod = SegmentMethod::SVD;
+            break;
+        case 2:
+            segMethod = SegmentMethod::FindMaximum;
+            break;
+        default:
+            qDebug() << "SegmentMethod parameter is wrong.";
+            break;
+        }
+
+        peakE = pars["peakE"].toDouble();
+
+        ADC_min = pars["ADC_min"].toInt();
+        ADC_max = pars["ADC_max"].toInt(); // ADC channel value
+        ADC_nBins = pars["ADC_nBins"].toInt();
+        ADC_binWidth = 1.0*(ADC_max-ADC_min)/ADC_nBins;
+        ADC_cutValue = pars["ADC_cutValue"].toInt();
+
+        recE_min = pars["recE_min"].toDouble();
+        recE_max = pars["recE_max"].toDouble(); // keV
+        recE_nBins = pars["recE_nBins"].toInt();
+        recE_binWidth = (recE_max-recE_min)/recE_nBins;
+        recE_cutValue = pars["recE_cutValue"].toDouble();
+
+        fName_LUT_P = pars["Position LUT"];
+        fName_LUT_E = pars["Energy LUT"];
+        fName_LUT_U = pars["Uniformity LUT"];
+
+        file.close();
+    }
+    else
+    {
+        // 如果不存在参数文件，则直接设默认值
+        nCM = 20;
+        nBK = 5;
+        nPixel = 512;
+        nCrystal = 26;
+        crystalNum = nCrystal*nCrystal;
+
+        enlarge = 1.06;
+        bias = 58;
+
+        xmin = 0;
+        xmax = 512;
+        ymin = 0;
+        ymax = 512;
+
+        EW_width = 0.25;
+
+        segMethod = SegmentMethod::SVD;
+
+        peakE = 511;
+
+        ADC_min = 0;
+        ADC_max = 60000;
+        ADC_nBins = 600;
+        ADC_binWidth = (ADC_max - ADC_min) / ADC_nBins;
+        ADC_cutValue = 15000;
+
+        recE_min = 0;
+        recE_max = 1600;
+        recE_nBins = 800;
+        recE_binWidth = (recE_max - recE_min) / recE_nBins;
+        recE_cutValue = 200;
+
+        fName_LUT_P = "LUT_Position.bin";
+        fName_LUT_E = "LUT_Energy.bin";
+        fName_LUT_U = "LUT_Uniformity.bin";
+    }
+
     ParameterForm* parWindow = new ParameterForm();
     parWindow->setWindowTitle("Parameters Setup Window");
-    parWindow->move(60, 60);
+    parWindow->move(50, 50);
     parWindow->show();
-
-    // QScreen* screen = QGuiApplication::primaryScreen();
-    // int height = screen->geometry().height();
-    // int width = screen->geometry().width();
 
     return app.exec();
 }

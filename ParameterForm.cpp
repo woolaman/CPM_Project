@@ -3,6 +3,9 @@
 #include "Parameters.h"
 #include "Mainwindow.h"
 
+#include <QFile>
+
+
 ParameterForm::ParameterForm(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::ParameterForm)
@@ -14,7 +17,7 @@ ParameterForm::ParameterForm(QWidget *parent)
     ui->lineEdit_nCrystal->setText(QString::number(nCrystal));
     ui->lineEdit_nPixel->setText(QString::number(nPixel));
 
-    ui->lineEdit_enlargeFactor->setText(QString::number(enlargeFactor, 'f', 2));
+    ui->lineEdit_enlarge->setText(QString::number(enlarge, 'f', 2));
     ui->lineEdit_bias->setText(QString::number(bias));
 
     ui->lineEdit_xmin->setText(QString::number(xmin));
@@ -24,19 +27,20 @@ ParameterForm::ParameterForm(QWidget *parent)
 
     ui->lineEdit_EW_width->setText(QString::number(EW_width, 'f', 2));
 
+    ui->lineEdit_segMethod->setText(
+        QString::number(static_cast<int>(segMethod)));
+
+    ui->lineEdit_peakE->setText(QString::number(peakE, 'f', 2));
+
     ui->lineEdit_ADC_min->setText(QString::number(ADC_min));
     ui->lineEdit_ADC_max->setText(QString::number(ADC_max));
     ui->lineEdit_ADC_nBins->setText(QString::number(ADC_nBins));
     ui->lineEdit_ADC_cutValue->setText(QString::number(ADC_cutValue));
 
-    ui->lineEdit_peakE->setText(QString::number(peakE, 'f', 2));
-
     ui->lineEdit_recE_min->setText(QString::number(recE_min, 'f', 1));
     ui->lineEdit_recE_max->setText(QString::number(recE_max));
     ui->lineEdit_recE_nBins->setText(QString::number(recE_nBins));
     ui->lineEdit_recE_cutValue->setText(QString::number(recE_cutValue));
-
-    ui->lineEdit_segMethod->setText(QString::number(static_cast<int>(segMethod)));
 
     ui->lineEdit_fName_LUT_P->setText(fName_LUT_P);
     ui->lineEdit_fName_LUT_E->setText(fName_LUT_E);
@@ -74,9 +78,9 @@ void ParameterForm::on_lineEdit_nPixel_editingFinished()
 }
 
 
-void ParameterForm::on_lineEdit_enlargeFactor_editingFinished()
+void ParameterForm::on_lineEdit_enlarge_editingFinished()
 {
-    enlargeFactor = ui->lineEdit_enlargeFactor->text().toDouble();
+    enlarge = ui->lineEdit_enlarge->text().toDouble();
 }
 
 
@@ -190,19 +194,19 @@ void ParameterForm::on_lineEdit_segMethod_editingFinished()
 
 void ParameterForm::on_lineEdit_fName_LUT_P_editingFinished()
 {
-    fName_LUT_P = currentPath + ui->lineEdit_fName_LUT_P->text();
+    fName_LUT_P = ui->lineEdit_fName_LUT_P->text();
 }
 
 
 void ParameterForm::on_lineEdit_fName_LUT_E_editingFinished()
 {
-    fName_LUT_E = currentPath + ui->lineEdit_fName_LUT_E->text();
+    fName_LUT_E = ui->lineEdit_fName_LUT_E->text();
 }
 
 
 void ParameterForm::on_lineEdit_fName_LUT_U_editingFinished()
 {
-    fName_LUT_U = currentPath + ui->lineEdit_fName_LUT_U->text();
+    fName_LUT_U = ui->lineEdit_fName_LUT_U->text();
 }
 
 
@@ -218,7 +222,72 @@ void ParameterForm::on_pushButton_start_clicked()
     int y = this->pos().y();
     int width = this->geometry().width();
     // int height = this->geometry().height();
-    mainWindow->move(x+width+20, y+10);
+    mainWindow->move(x+width+20, y);
     mainWindow->show();
+}
+
+
+
+void ParameterForm::closeEvent(QCloseEvent *event)
+{
+    // 执行一些操作
+    qDebug() << "Window is closing. Performing some operations...";
+
+    qDebug() << "Save parameters to file.";
+    QString fName = currentPath + ".config.par";
+    QFile file(fName);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QTextStream out(&file);
+
+        out << "# Parameter setup file \n" << Qt::endl;
+
+        out << "nCM = " + QString::number(nCM) + "\n";
+        out << "nBK = " + QString::number(nBK) + "\n";
+        out << "nCrystal = " + QString::number(nCrystal) + "\n";
+        out << "nPixel = " + QString::number(nPixel) + "\n" << Qt::endl;
+
+        out << "enlarge = " + QString::number(enlarge, 'f', 2) + "\n";
+        out << "bias = " + QString::number(bias) + "\n" << Qt::endl;
+
+        out << "xmin = " + QString::number(xmin) + "\n";
+        out << "xmax = " + QString::number(xmax) + "\n";
+        out << "ymin = " + QString::number(ymin) + "\n";
+        out << "ymax = " + QString::number(ymax) + "\n" << Qt::endl;
+
+        out << "EW_width = " + QString::number(EW_width, 'f', 2)
+                   + "\n" << Qt::endl;
+
+        out << "segmentMethod = " +
+                   QString::number(static_cast<int>(segMethod))
+                   + "\n" << Qt::endl;
+
+        out << "peakE = " + QString::number(peakE, 'f', 2)  + "\n" << Qt::endl;
+
+        out << "ADC_min = " + QString::number(ADC_min)  + "\n";
+        out << "ADC_max = " + QString::number(ADC_max)  + "\n";
+        out << "ADC_nBins = " + QString::number(ADC_nBins)  + "\n";
+        out << "ADC_cutValue = " + QString::number(ADC_cutValue)
+                   + "\n" << Qt::endl;
+
+        out << "recE_min = " + QString::number(recE_min)  + "\n";
+        out << "recE_max = " + QString::number(recE_max)  + "\n";
+        out << "recE_nBins = " + QString::number(recE_nBins)  + "\n";
+        out << "recE_cutValue = " + QString::number(recE_cutValue)
+                   + "\n" << Qt::endl;
+
+        out << "Position LUT = " + fName_LUT_P + "\n";
+        out << "Energy LUT = " + fName_LUT_E + "\n";
+        out << "Uniformity LUT = " + fName_LUT_U + "\n" << Qt::endl;
+    }
+    else
+    {
+        qDebug() << "Fail to save parameters.";
+    }
+
+    file.close();
+
+    // 调用父类的 closeEvent 方法继续执行默认的关闭操作
+    QWidget::closeEvent(event);
 }
 

@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QPoint>
 #include <QMouseEvent>
+#include <QToolTip>
 
 
 class LabelFloodmap : public QLabel
@@ -27,6 +28,7 @@ signals:
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
 
 private:

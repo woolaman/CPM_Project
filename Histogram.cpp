@@ -138,17 +138,6 @@ qreal Histogram::GetResolution()
     m_leftValue = m_binCenters[leftIdx];
     m_rightValue = m_binCenters[rightIdx];
     qreal FWHM = m_rightValue - m_leftValue; // 半高宽
-
-    /************************************************
-    qDebug() << "peak x = " << peak_x << "peak y = " << peak_y;
-    qDebug() << "half max = " << halfMax;
-    qDebug() << "left x = " << m_leftValue <<
-        "left height = " << m_binContents[leftIdx];
-    qDebug() << "right x = " << m_rightValue <<
-        "right height = " << m_binContents[rightIdx];
-    qDebug() << "FWHM = " << FWHM;
-    **************************************************/
-
     return FWHM/peak_x;
 }
 

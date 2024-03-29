@@ -3,14 +3,13 @@
 
 #include <QString>
 
-
 extern int nCM;
 extern int nBK;
 extern int nPixel;
 extern int nCrystal;
 extern int crystalNum;
 
-extern qreal enlargeFactor; // 调整点阵大小
+extern qreal enlarge; // 调整点阵大小
 extern int bias; // 调整点阵位置
 
 // choose central area to analysis
@@ -20,6 +19,16 @@ extern int ymin;
 extern int ymax;
 
 extern qreal EW_width;
+
+enum class SegmentMethod
+{
+    SVD = 1,
+    FindMaximum = 2,
+};
+
+extern SegmentMethod segMethod;
+
+extern qreal peakE;
 
 extern int ADC_min;
 extern int ADC_max; // ADC channel value
@@ -37,17 +46,5 @@ extern QString currentPath;
 extern QString fName_LUT_P;
 extern QString fName_LUT_E;
 extern QString fName_LUT_U;
-
-extern qreal peakE;
-
-
-enum class SegmentMethod
-{
-    SVD = 1,
-    FindMaximum = 2,
-};
-
-extern SegmentMethod segMethod;
-
 
 #endif // PARAMETERS_H

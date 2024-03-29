@@ -232,6 +232,8 @@ void MainWindow::on_pushButton_readinData_clicked()
 
 void MainWindow::on_pushButton_setEW_clicked()
 {
+    m_BK->Clear();
+
     QString fName = currentPath + "Data/data.bin";
     if (!QFile::exists(fName))
     {
@@ -239,6 +241,7 @@ void MainWindow::on_pushButton_setEW_clicked()
         return;
     }
 
+    qDebug() << "Start to readin data: " << fName;
     QFile file(fName);
     if (file.open(QIODevice::ReadOnly))
     {
@@ -256,6 +259,7 @@ void MainWindow::on_pushButton_setEW_clicked()
             }
         }
         file.close();
+        qDebug() << "Readin data has been done.";
     }
     else
     {
@@ -263,6 +267,7 @@ void MainWindow::on_pushButton_setEW_clicked()
         return;
     }
 
+    qDebug() << "Draw total ADC histogram in label";
     Histogram* ADCHist = m_BK->GetADCHist();
 
     QVector<QPointF> points;
@@ -273,12 +278,16 @@ void MainWindow::on_pushButton_setEW_clicked()
         points.append(QPointF(x, y));
     }
 
+    qDebug() << "find peak, then draw peak line.";
+    ADCHist->SetCutValue(ADC_cutValue);
     QPointF peak = ADCHist->GetPeak();
+    qDebug() << __LINE__;
     qreal peak_x = peak.x();
     m_peakValue = peak.y();
 
     eHistLine->replace(points);
 
+    qDebug() << "setup energy window.";
     int minEW = qRound(peak_x*(1-EW_width));
     int maxEW = qRound(peak_x*(1+EW_width));
 
@@ -291,6 +300,7 @@ void MainWindow::on_pushButton_setEW_clicked()
     EWRightLine->replace(0, maxEW, 0);
     EWRightLine->replace(1, maxEW, m_peakValue);
 
+    qDebug() << "set pixel map.";
     QPixmap pixmap = chartView->grab();
     ui->label_eHist->setPixmap(pixmap);
 
@@ -302,9 +312,8 @@ void MainWindow::on_pushButton_setEW_clicked()
     m_BK->SetEW(minEW, maxEW);
     m_BK->CalMap();
     ShowImage(m_BK->GetMap());
+    ui->label_floodmap->setMouseTracking(true);
     qDebug() << "Generate I0. ";
-
-    //peakE = ui->lineEdit_peakEnergy->text().toInt();
 
     //cv::Mat color_I0 = GetColorMap(I0);
     //cv::namedWindow("I0", cv::WINDOW_NORMAL); // cv::WINDOW_AUTOSIZE
@@ -318,6 +327,7 @@ void MainWindow::on_pushButton_segment_clicked()
     imgFlag = 0;
     m_BK->Segment(segMethod);
     ShowPeaks(m_BK->GetMap(), m_BK->GetPeakTable());
+    ui->label_floodmap->setMouseTracking(false);
 }
 
 
@@ -331,7 +341,6 @@ void MainWindow::on_pushButton_genPositionLUT_clicked()
 
 void MainWindow::on_pushButton_genEnergyLUT_clicked()
 {
-    peakE = ui->lineEdit_peakEnergy->text().toDouble();
     m_BK->CalRecEHist();
     m_BK->GenEnergyLUT();
     QMessageBox::information(this, "能量校正表", "能量校正表已生成。");
@@ -508,7 +517,7 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
             qDebug() << "Failed to save image to" << figName;
         }
 
-        QMessageBox::information(this, "分割过程", "分割完毕，位置查找表已生成。");
+        QMessageBox::information(this, "分割过程", "分割完毕。");
     }
 
     if(1==imgFlag)
@@ -578,6 +587,7 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
 {
     // 计算单根分辨率
     // 画单根分辨率map 在label_floodmap
+
     qDebug() << "Calculate single crystal's energy resolution.";
     cv::Mat_<qreal> ERMat(nCrystal, nCrystal);
     for (int iRow = 0; iRow < nCrystal; ++iRow)
@@ -587,14 +597,34 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
             int id = iRow * nCrystal + iCol;
             qreal aER = m_BK->GetCrystal(id)->GetER();
             ERMat(iRow, iCol) = aER*100;
+
+            qDebug() << "Row ID = " << iRow <<
+                ", Col ID = " << iCol <<
+                ", ER = " << aER;
         }
     }
+
     ShowImage(ERMat);
 
     QPixmap aPixmap = ui->label_floodmap->pixmap();
     QPainter aPainter(&aPixmap);
     aPainter.setPen(QPen(Qt::black, 1));
-    aPainter.setFont(QFont("Arial", 10));
+
+    int fontSize = 10;
+    if(nCrystal<10)
+    {
+        fontSize = 12;
+    }
+    else if(nCrystal<20)
+    {
+        fontSize = 10;
+    }
+    else
+    {
+        fontSize = 8;
+    }
+    aPainter.setFont(QFont("Arial", fontSize));
+
     qreal width = 1.0*nPixel/nCrystal;
     for (int iRow = 0; iRow < nCrystal; ++iRow)
     {
@@ -687,7 +717,7 @@ void MainWindow::on_pushButton_calUniformity_clicked()
     }
     ui->label_floodmap->setPixmap(aPixmap);
 
-    QFile outfile(fName_LUT_U);
+    QFile outfile(currentPath + fName_LUT_U);
     if ( outfile.open(QIODevice::WriteOnly) )
     {
         QDataStream out(&outfile);
@@ -756,8 +786,8 @@ void MainWindow::ReStoreData()
             quint16 y = data[1][i];
             quint16 e = data[2][i];
 
-            x = qRound(enlargeFactor*x/e*nPixel) - bias;
-            y = qRound(enlargeFactor*y/e*nPixel) - bias;
+            x = qRound(enlarge*x/e*nPixel) - bias;
+            y = qRound(enlarge*y/e*nPixel) - bias;
 
             if(0<x && x<nPixel && 0<y && y<nPixel && ADC_min<e && e< ADC_max)
             {

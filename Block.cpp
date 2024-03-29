@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QFile>
+#include <QElapsedTimer>
 
 #include "opencv2/imgproc.hpp"
 
@@ -10,9 +11,14 @@
 
 Block::Block()
 {
+    m_ID = 0;
+
     m_I0 = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
-    m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
     m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
+    m_edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
+    m_segMap = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
+
+    m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
 
     m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
     m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
@@ -107,14 +113,17 @@ void Block::CalMap()
 
 void Block::Segment(SegmentMethod method)
 {
-    if(method==SegmentMethod::SVD)
+    switch (method)
     {
+    case SegmentMethod::SVD:
         Segment1();
-    }
-
-    if(method==SegmentMethod::FindMaximum)
-    {
+        break;
+    case SegmentMethod::FindMaximum:
         Segment2();
+        break;
+    default:
+        qDebug() << "Segment Method parameter must be 1 or 2.";
+        break;
     }
 }
 
@@ -123,6 +132,9 @@ void Block::Segment1()
 {
     // 自动寻峰, 奇异值分解, 寻找规则峰位作为平均值移动算法的迭代初始位置
     // 平均值移动算法，寻找peaks
+    QElapsedTimer timer;
+    timer.start();
+
     qDebug() << "SVD start.";
     cv::Mat U, S, Vt;
     cv::SVD::compute(m_I0, S, U, Vt); // 进行奇异值分解
@@ -131,6 +143,9 @@ void Block::Segment1()
     S1.at<qreal>(0, 0) = S.at<qreal>(0, 0);
     cv::Mat I1 = U*S1*Vt;
     qDebug() << "SVD done. ";
+
+    qint64 elapsedTime = timer.elapsed();
+    qDebug() << "Elapsed time:" << elapsedTime << "ms"; // 输出运行时间
 
     cv::Mat col_sum, row_sum;
     cv::reduce(I1, col_sum, 0, cv::REDUCE_SUM);
@@ -293,7 +308,7 @@ void Block::Segment2() // maximum method to find peaks
         // 将maxLoc附近的元素置为0
         int m0 = maxLoc.x;
         int n0 = maxLoc.y;
-        int r = 5;
+        int r = 6;
 
         for (int n = n0-r; n <= n0+r; ++n)
         {
@@ -425,16 +440,12 @@ void Block::CalRecEHist()
 
         quint16 ID = m_segr(y, x);
         m_crystals[ID]->Fill(e);
-        //if(m_EW_min<e && e<m_EW_max)
-        //{
-        //    quint16 ID = m_segr(y, x);
-        //    m_crystals[ID]->Fill(e);
-        //}
     }
 
     for (auto aCrystal : m_crystals)
     {
         aCrystal->CalRecEHist();
+        aCrystal->GetRecEHist()->SetCutValue(recE_cutValue);
         m_recEHist->Add(aCrystal->GetRecEHist());
     }
 }
@@ -506,7 +517,7 @@ void Block::CalSegFOM()
 void Block::GenPositionLUT()
 {
     //根据分割结果，生成位置查找表
-    QFile file(fName_LUT_P);
+    QFile file(currentPath + fName_LUT_P);
     if(!file.open(QIODevice::WriteOnly))
     {
         qDebug() << "打开文件失败，无法生成位置查找表。";
@@ -531,7 +542,7 @@ void Block::GenPositionLUT()
 
 void Block::GenEnergyLUT()
 {
-    QFile outFile(fName_LUT_E);
+    QFile outFile(currentPath + fName_LUT_E);
     if(!outFile.open(QIODevice::WriteOnly))
     {
         qDebug() << "打开文件失败，无法生成能量查找表。";
@@ -630,6 +641,12 @@ void Block::Clear()
 
     m_ADCHist->Clear();
     m_recEHist->Clear();
+
+    m_I0.setTo(0);
+    m_pt.setTo(cv::Vec2w(0, 0));
+    m_segr.setTo(0);
+    m_edge.setTo(0);
+    m_segMap.setTo(0);
 }
 
 

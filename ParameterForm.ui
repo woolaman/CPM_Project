@@ -182,7 +182,7 @@
      </widget>
     </item>
     <item row="4" column="1">
-     <widget class="QLineEdit" name="lineEdit_enlargeFactor">
+     <widget class="QLineEdit" name="lineEdit_enlarge">
       <property name="font">
        <font>
         <pointsize>10</pointsize>

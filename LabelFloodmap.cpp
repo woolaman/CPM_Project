@@ -1,5 +1,7 @@
 #include "LabelFloodmap.h"
 
+#include <QCursor>
+
 
 LabelFloodmap::LabelFloodmap(QWidget *parent)
     : QLabel(parent)
@@ -22,6 +24,7 @@ QPoint LabelFloodmap::GetPos()
 
 void LabelFloodmap::mousePressEvent(QMouseEvent *event)
 {
+
     if (event->button() == Qt::LeftButton)
     {
         // 左键点击事件
@@ -35,5 +38,16 @@ void LabelFloodmap::mousePressEvent(QMouseEvent *event)
 
     // 保留 QLabel 默认的处理
     QLabel::mousePressEvent(event);
+}
+
+
+void LabelFloodmap::mouseMoveEvent(QMouseEvent *event)
+{
+    QPoint localPos = event->pos();
+    QPoint cursorPos = QCursor::pos();
+    QToolTip::showText(cursorPos + QPoint(10, 10),
+                       QString("(%1, %2)").arg(localPos.x()).arg(localPos.y()),
+                       this);
+    QLabel::mouseMoveEvent(event);
 }
 
