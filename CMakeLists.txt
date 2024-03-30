@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+﻿cmake_minimum_required(VERSION 3.24)
 
 project(CPM VERSION 0.1 LANGUAGES CXX)
 
@@ -14,6 +14,9 @@ find_package(Qt6 COMPONENTS Core Gui Widgets Charts REQUIRED)
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
+
+include(C:/vcpkg/scripts/buildsystems/vcpkg.cmake)
+find_package(GSL REQUIRED)
 
 
 set(PROJECT_SOURCES
@@ -55,6 +58,8 @@ target_link_libraries(CPM PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Charts
     ${OpenCV_LIBS}
+    GSL::gsl
+    GSL::gslcblas
 )
 
 set_target_properties(CPM PROPERTIES

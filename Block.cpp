@@ -8,6 +8,8 @@
 
 #include "Parameters.h"
 
+#include "gsl/gsl_linalg.h"
+
 
 Block::Block()
 {
@@ -132,20 +134,40 @@ void Block::Segment1()
 {
     // 自动寻峰, 奇异值分解, 寻找规则峰位作为平均值移动算法的迭代初始位置
     // 平均值移动算法，寻找peaks
-    QElapsedTimer timer;
-    timer.start();
 
     qDebug() << "SVD start.";
-    cv::Mat U, S, Vt;
-    cv::SVD::compute(m_I0, S, U, Vt); // 进行奇异值分解
+    gsl_matrix* A = gsl_matrix_alloc(nPixel, nPixel);
+    gsl_matrix* V = gsl_matrix_alloc(nPixel, nPixel);
+    gsl_vector* S = gsl_vector_alloc(nPixel);
+    gsl_vector* workspace = gsl_vector_alloc(nPixel);
 
-    cv::Mat S1 = cv::Mat::zeros(m_I0.size(), m_I0.type());
-    S1.at<qreal>(0, 0) = S.at<qreal>(0, 0);
-    cv::Mat I1 = U*S1*Vt;
+    for (int i = 0; i < nPixel; ++i)
+    {
+        for (int j = 0; j < nPixel; ++j)
+        {
+            gsl_matrix_set(A, i, j, m_I0(i, j));
+        }
+    }
+
+    gsl_linalg_SV_decomp(A, V, S, workspace);
+
+    cv::Mat_<qreal> UMat = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
+    cv::Mat_<qreal> SMat = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
+    cv::Mat_<qreal> VMat = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
+
+    for (int i = 0; i < nPixel; ++i)
+    {
+        for (int j = 0; j < nPixel; ++j)
+        {
+            UMat(i, j) = gsl_matrix_get(A, i, j);
+            VMat(i, j) = gsl_matrix_get(V, i, j);
+        }
+    }
+
+    SMat(0, 0) = gsl_vector_get(S, 0);
+
+    cv::Mat I1 = UMat*SMat*VMat.t();
     qDebug() << "SVD done. ";
-
-    qint64 elapsedTime = timer.elapsed();
-    qDebug() << "Elapsed time:" << elapsedTime << "ms"; // 输出运行时间
 
     cv::Mat col_sum, row_sum;
     cv::reduce(I1, col_sum, 0, cv::REDUCE_SUM);

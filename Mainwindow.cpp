@@ -597,10 +597,6 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
             int id = iRow * nCrystal + iCol;
             qreal aER = m_BK->GetCrystal(id)->GetER();
             ERMat(iRow, iCol) = aER*100;
-
-            qDebug() << "Row ID = " << iRow <<
-                ", Col ID = " << iCol <<
-                ", ER = " << aER;
         }
     }
 
