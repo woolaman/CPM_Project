@@ -39,8 +39,8 @@ private:
     qreal m_xmax;
     qreal m_binWidth;
 
-    QVector<qreal> m_binContents;
     QVector<qreal> m_binCenters;
+    QVector<qreal> m_binContents;
 
     qreal m_cutValue;
 

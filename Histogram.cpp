@@ -16,8 +16,9 @@ Histogram::Histogram(qreal aXmin, qreal aXmax, int nBins)
     m_nBins = nBins;
 
     m_binWidth = (m_xmax-m_xmin)/m_nBins;
-    m_binContents = QVector<qreal>(m_nBins, 0);
     m_binCenters = QVector<qreal>(m_nBins, 0);
+    m_binContents = QVector<qreal>(m_nBins, 0);
+
     for (int i = 0; i < m_nBins; ++i)
     {
         m_binCenters[i] = m_xmin + i*m_binWidth + m_binWidth/2;

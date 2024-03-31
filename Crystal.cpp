@@ -1,9 +1,12 @@
 ﻿#include "Crystal.h"
 #include "Parameters.h"
+
 #include <QDebug>
+
 
 Crystal::Crystal()
 {
+    m_ID = 0;
     m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
     m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
 }
@@ -19,8 +22,8 @@ Crystal::Crystal(int ID)
 
 Crystal::~Crystal()
 {
-    //delete m_ADCHist;
-    //delete m_recEHist;
+    delete m_ADCHist;
+    delete m_recEHist;
 }
 
 

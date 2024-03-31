@@ -25,15 +25,14 @@ void Readin::StartReadTxt()
 
     if (!QFile::exists(m_fileName)) // 检查文件是否存在
     {
-        qDebug() << "file name is " << m_fileName;
-        qDebug() << "Fail to open file, please check file.";
+        qDebug() << "File doesnot exists, please check file: " << m_fileName;
         return;
     }
 
     QFile file(m_fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        qDebug() << "Fail to open file, please check file.";
+        qDebug() << "Fail to open file, please check file: " << m_fileName;
         return;
     }
 

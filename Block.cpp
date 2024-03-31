@@ -2,12 +2,8 @@
 
 #include <QDebug>
 #include <QFile>
-#include <QElapsedTimer>
 
 #include "opencv2/imgproc.hpp"
-
-#include "Parameters.h"
-
 #include "gsl/gsl_linalg.h"
 
 
@@ -40,8 +36,11 @@ Block::Block(int ID)
     m_ID = ID;
 
     m_I0 = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
-    m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
     m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
+    m_edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
+    m_segMap = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
+
+    m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
 
     m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
     m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
@@ -57,10 +56,10 @@ Block::Block(int ID)
 
 
 Block::~Block()
-{
-    for (int i = 0; i < crystalNum; ++i)
+{   
+    for (auto var : m_crystals)
     {
-        delete m_crystals[i];
+        delete var;
     }
 
     delete m_ADCHist;
@@ -89,23 +88,16 @@ void Block::Fill(quint16 x, quint16 y, quint16 e)
 }
 
 
-void Block::SetEW(int EW_min, int EW_max)
+void Block::CalMap(int EW_min, int EW_max)
 {
-    m_EW_min = EW_min;
-    m_EW_max = EW_max;
-}
-
-
-void Block::CalMap()
-{
-    //qDebug() << "start to calculate floodmap beteen energy window.";
+    qDebug() << "start to calculate floodmap beteen energy window.";
     for (int i = 0; i < m_eList.size(); ++i)
     {
         quint16 x = m_xList[i];
         quint16 y = m_yList[i];
         quint16 e = m_eList[i];
 
-        if(m_EW_min<e && e<m_EW_max)
+        if(EW_min<e && e<EW_max)
         {
             m_I0(y, x) += 1;
         }
@@ -167,6 +159,11 @@ void Block::Segment1()
     SMat(0, 0) = gsl_vector_get(S, 0);
 
     cv::Mat I1 = UMat*SMat*VMat.t();
+
+    gsl_matrix_free(A);
+    gsl_matrix_free(V);
+    gsl_vector_free(S);
+    gsl_vector_free(workspace);
     qDebug() << "SVD done. ";
 
     cv::Mat col_sum, row_sum;
@@ -220,10 +217,10 @@ void Block::Segment1()
                         cv::Point2f x(m_pt(iRow*m_num2+i, iCol*m_num2+j)[0],
                                       m_pt(iRow*m_num2+i, iCol*m_num2+j)[1]);
 
-                        // 累加项
+                        // 累加项 // 附近的点进行累加
                         cv::Point2f u(0, 0);
                         qreal d = 0;
-                        int r = 6;
+                        int r = 6; // 累加范围
                         for (int n = x.y-r; n <= x.y+r; ++n)
                         {
                             for (int m = x.x-r; m <= x.x+r; ++m)
@@ -334,7 +331,7 @@ void Block::Segment2() // maximum method to find peaks
 
         for (int n = n0-r; n <= n0+r; ++n)
         {
-            for (int m = m0-r; m <=m0+r ; ++m)
+            for (int m = m0-r; m <= m0+r ; ++m)
             {
                 if(cv::norm(maxLoc-cv::Point(m, n))<=r)
                 {
@@ -445,9 +442,9 @@ void Block::CalSegResult()
 
     // 创建文件存储对象
     cv::FileStorage fs(fileName.toStdString(), cv::FileStorage::WRITE);
-    fs.write("floodmap", m_I0); // 将I0 也写入
+    fs.write("floodmap", m_I0); // 将 I0 写入
     fs.write("edge", m_edge);   // 写入边界结果
-    fs.write("segr", m_segr);   // 写入矩阵数据
+    fs.write("segr", m_segr);   // 写入分割结果
     fs.release();  // 关闭文件
 }
 
@@ -467,8 +464,9 @@ void Block::CalRecEHist()
     for (auto aCrystal : m_crystals)
     {
         aCrystal->CalRecEHist();
-        aCrystal->GetRecEHist()->SetCutValue(recE_cutValue);
-        m_recEHist->Add(aCrystal->GetRecEHist());
+        auto iRecEHist = aCrystal->GetRecEHist();
+        iRecEHist->SetCutValue(recE_cutValue);
+        m_recEHist->Add(iRecEHist);
     }
 }
 
@@ -476,7 +474,7 @@ void Block::CalRecEHist()
 void Block::CalSegFOM()
 {
     // step 5, 求分割质量参数
-    // IR 是图像均值比去分割线上的计数，约大质量越好
+    // IR 是图像均值比去分割线上的计数，越大质量越好
     // rms 是各个分割区域的均方差，越小越好
     quint64 totalEvts = 0;
     quint64 edgeEvts = 0;
@@ -489,7 +487,7 @@ void Block::CalSegFOM()
         {
             if ( ymin<i && i<ymax && xmin<j && j<xmax )
             {
-                qreal aN = m_I0(i, j);
+                int aN = static_cast<int>(m_I0(i, j));
                 pixelCounter++;
                 totalEvts += aN;        
 
@@ -548,12 +546,73 @@ void Block::GenPositionLUT()
 
     QDataStream out(&file);
 
+    srand(time(0));
+
     // 写入矩阵数据
-    for (int iRow = 0; iRow < nPixel; ++iRow)
+    for (int i = 0; i < nPixel; ++i)
     {
-        for (int iCol = 0; iCol < nPixel; ++iCol)
+        for (int j = 0; j < nPixel; ++j)
         {
-            out << m_segr(iRow, iCol);
+            int ID = m_segr(i, j);
+            int rowID = ID / nCrystal; // 0 -- nCrystal-1
+            int colID = ID % nCrystal;
+
+            if(0==rowID)
+            {
+                // 0 ==> 50% is 0, 50% is 1
+                int aN = rand() % 100;
+                if(aN<50)
+                {
+                    rowID++;
+                }
+            }
+            else if((nCrystal-1)==rowID)
+            {
+                // nCrystal-1 ==> 50% is nCrystal, 50% is nCrystal + 1
+                int aN = rand() % 100;
+                if(aN<50)
+                {
+                    rowID += 1;
+                }
+                else
+                {
+                    rowID += 2;
+                }
+            }
+            else
+            {
+                rowID++; // 1==>2, ..., nCrystal-2 ==> nCrystal-1
+            }
+
+            if(0==colID)
+            {
+                // 0 ==> 50% is 0, 50% is 1
+                int aN = rand() % 100;
+                if(aN<50)
+                {
+                    colID++;
+                }
+            }
+            else if((nCrystal-1)==colID)
+            {
+                // nCrystal-1 ==> 50% is nCrystal, 50% is nCrystal + 1
+                int aN = rand() % 100;
+                if(aN<50)
+                {
+                    colID += 1;
+                }
+                else
+                {
+                    colID += 2;
+                }
+            }
+            else
+            {
+                colID++; // 1==>2, ..., nCrystal-2 ==> nCrystal-1
+            }
+
+            quint16 newID = rowID * (nCrystal+2) + colID;
+            out << newID;
         }
     }
 
@@ -564,20 +623,21 @@ void Block::GenPositionLUT()
 
 void Block::GenEnergyLUT()
 {
-    QFile outFile(currentPath + fName_LUT_E);
-    if(!outFile.open(QIODevice::WriteOnly))
+    QFile file(currentPath + fName_LUT_E);
+    if(!file.open(QIODevice::WriteOnly))
     {
         qDebug() << "打开文件失败，无法生成能量查找表。";
         return;
     }
-    QDataStream outStream(&outFile);
+
+    QDataStream outStream(&file);
 
     for (int i = 0; i < crystalNum; ++i)
     {
         outStream << m_crystals[i]->GetSlope();
     }
 
-    outFile.close();
+    file.close();
     qDebug() << "能量查找表已生成: " + fName_LUT_E;
 }
 

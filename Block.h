@@ -1,10 +1,10 @@
 ﻿#ifndef BLOCK_H
 #define BLOCK_H
 
-#include <opencv2/core.hpp>
-
 #include "Crystal.h"
 #include "Parameters.h"
+
+#include <opencv2/core.hpp>
 
 
 class Block
@@ -19,8 +19,7 @@ public:
 
     void Fill(quint16 x, quint16 y, quint16 e);
 
-    void SetEW(int EW_min, int EW_max);
-    void CalMap();
+    void CalMap(int EW_min, int EW_max);
 
     void Segment(SegmentMethod method);
     void Segment1(); // SVD method
@@ -60,9 +59,6 @@ private: // private members
     QVector<quint16> m_eList;
 
     QVector<Crystal*> m_crystals;
-
-    int m_EW_min;
-    int m_EW_max;
 
     Histogram* m_ADCHist;
     Histogram* m_recEHist;

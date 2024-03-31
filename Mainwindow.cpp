@@ -99,20 +99,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    /**********************
-    delete ui;
-    delete eHistLine;
-    delete EWLeftLine;
-    delete EWRightLine;
-    delete peakLine;
-    delete axisX;
-    delete axisY;
-    delete chart;
-    delete chartView;
-
-    delete dataObject;
-    delete m_BK;
-    *************************/
     qDebug() << "程序关闭。";
 }
 
@@ -179,9 +165,7 @@ void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
             int x = pt(j, i)[0];
             int y = pt(j, i)[1];
 
-            int r = 3;
-            //painter.drawLine(x-r, y+r, x+r, y-r); // "/"
-            //painter.drawLine(x-r, y-r, x+r, y+r); // "\"
+            int r = 4;
             painter.drawLine(x-r, y, x+r, y); // "——"
             painter.drawLine(x, y-r, x, y+r); // "|"
             points.append(QPoint(x, y));
@@ -269,6 +253,7 @@ void MainWindow::on_pushButton_setEW_clicked()
 
     qDebug() << "Draw total ADC histogram in label";
     Histogram* ADCHist = m_BK->GetADCHist();
+    ADCHist->Smooth();
 
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
@@ -281,7 +266,6 @@ void MainWindow::on_pushButton_setEW_clicked()
     qDebug() << "find peak, then draw peak line.";
     ADCHist->SetCutValue(ADC_cutValue);
     QPointF peak = ADCHist->GetPeak();
-    qDebug() << __LINE__;
     qreal peak_x = peak.x();
     m_peakValue = peak.y();
 
@@ -309,15 +293,10 @@ void MainWindow::on_pushButton_setEW_clicked()
     qDebug() << "画出整个BK能谱，并自动生成峰值左右各25%能窗参数。";
 
     // 参照能窗的设置参数，筛选数据
-    m_BK->SetEW(minEW, maxEW);
-    m_BK->CalMap();
+    m_BK->CalMap(minEW, maxEW);
     ShowImage(m_BK->GetMap());
     ui->label_floodmap->setMouseTracking(true);
     qDebug() << "Generate I0. ";
-
-    //cv::Mat color_I0 = GetColorMap(I0);
-    //cv::namedWindow("I0", cv::WINDOW_NORMAL); // cv::WINDOW_AUTOSIZE
-    //cv::imshow("I0", color_I0);
 }
 
 
@@ -399,7 +378,6 @@ void MainWindow::ShowADCHist(int peakLoc)
 
 void MainWindow::on_pushButton_calOnePeak_clicked()
 {
-    // 只读取能谱文件中的某一段数据，即某个晶体的能谱数据
     imgFlag = 2;
 
     EWLeftLine->replace(0, -1, 0);
@@ -415,7 +393,6 @@ void MainWindow::on_pushButton_calOnePeak_clicked()
 
     Crystal* aCrystal = m_BK->GetCrystal(crystalID);
     Histogram* ADCHist = aCrystal->GetADCHist();
-    ADCHist->Smooth();
 
     QVector<QPointF> points;
     for (int i = 0; i < ADC_nBins; ++i)
@@ -429,6 +406,7 @@ void MainWindow::on_pushButton_calOnePeak_clicked()
     peakLine->replace(0, ADCHist->GetPeak().x(), 0);
     peakLine->replace(1, ADCHist->GetPeak().x(), ADCHist->GetPeak().y());
 
+    axisX->setRange(ADC_min, ADC_max);
     axisY->setRange(0, ADCHist->GetPeak().y()*1.1);
 
     QPixmap pixmap = chartView->grab();
@@ -476,7 +454,6 @@ void MainWindow::on_label_floodmap_mouseLeftClicked()
     {
         // step 3, 手动修正 peak 位置
         QPoint pos = ui->label_floodmap->GetPos();
-
         m_BK->ManualAdjust(pos);
         ShowPeaks(m_BK->GetMap(), m_BK->GetPeakTable());
     }
@@ -525,8 +502,9 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
         int m = ui->lineEdit_colID->text().toInt();
         int n = ui->lineEdit_rowID->text().toInt();
 
-        if(n==(nCrystal-1) && m==(nCrystal-1))
+        if(n>=nCrystal || m>=nCrystal)
         {
+            qDebug() << "Row or col ID is out of range.";
             return;
         }
 
@@ -564,22 +542,23 @@ void MainWindow::on_pushButton_calSegFOM_clicked()
 
 
 void MainWindow::on_pushButton_writePeaks_clicked()
-{
-    /**********************************
-    QFile file(fName_LUT_E);
-    if (!file.open(QIODevice::WriteOnly))
+{  
+    QFile file(currentPath + fName_LUT_E);
+    if(!file.open(QIODevice::WriteOnly))
     {
-        qDebug() << "文件打开失败，无法生成能量查找表。";
+        qDebug() << "打开文件失败，无法生成能量查找表。";
         return;
     }
 
-    QDataStream out(&file);
-    for (const auto& var : m_slopes)
+    QDataStream outStream(&file);
+
+    for (int i = 0; i < crystalNum; ++i)
     {
-        out << var;
+        outStream << m_BK->GetCrystal(i)->GetSlope();
     }
+
     file.close();
-    *******************************/
+    qDebug() << "能量查找表已重新生成: " + fName_LUT_E;
 }
 
 
@@ -587,7 +566,6 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
 {
     // 计算单根分辨率
     // 画单根分辨率map 在label_floodmap
-
     qDebug() << "Calculate single crystal's energy resolution.";
     cv::Mat_<qreal> ERMat(nCrystal, nCrystal);
     for (int iRow = 0; iRow < nCrystal; ++iRow)
@@ -678,7 +656,7 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
 
 void MainWindow::on_pushButton_calUniformity_clicked()
 {
-    cv::Mat_<qreal> nEvts = cv::Mat::zeros(nCrystal, nCrystal, CV_32FC1);
+    cv::Mat_<qreal> nEvts = cv::Mat::zeros(nCrystal, nCrystal, CV_64FC1);
 
     int totalEvts = 0;
     for (int iRow = 0; iRow < nCrystal; ++iRow)
