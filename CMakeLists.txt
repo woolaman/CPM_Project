@@ -21,9 +21,9 @@ find_package(GSL REQUIRED)
 
 set(PROJECT_SOURCES
     main.cpp
-    Mainwindow.cpp
-    Mainwindow.h
-    Mainwindow.ui
+    MainWindow.cpp
+    MainWindow.h
+    mainwindow.ui
     LabelHistogram.h
     LabelHistogram.cpp
     LabelFloodmap.h

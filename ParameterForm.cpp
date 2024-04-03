@@ -1,7 +1,7 @@
 ﻿#include "ParameterForm.h"
 #include "ui_ParameterForm.h"
 #include "Parameters.h"
-#include "Mainwindow.h"
+#include "MainWindow.h"
 
 #include <QFile>
 

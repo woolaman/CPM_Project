@@ -32,6 +32,7 @@ public:
     void ShowImage(cv::Mat_<qreal> I);
     void ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt);
     void ShowADCHist(int peakLoc=-1);
+    void ShowRecEHist();
 
 
 private slots:
@@ -61,6 +62,8 @@ private slots:
     void UpdateProgressBar(int pos);
     void ReStoreData();
 
+    void on_pushButton_crystalES_clicked();
+
 
 private:
     Ui::MainWindow* ui;
@@ -78,10 +81,11 @@ private:
     QChart*      chart;
     QChartView*  chartView;
 
-    qreal m_peakValue;
+    qreal m_peakValue = 0;
     //oooooooOOOOOOOOOoooooooooooo
 
-    // 0-floodmap, 1-calPeaks, 2-calOnePeak
+    // 0-floodmap, 1-calPeaks, 2-calOnePeak,
+    // 3-check single crystal energy spectrum
     quint8 imgFlag = 0;
 };
 

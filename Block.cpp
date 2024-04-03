@@ -28,6 +28,9 @@ Block::Block()
     }
 
     CalGroupPar();
+
+    m_PVR = 0;
+    m_FWHM = 0;
 }
 
 
@@ -52,11 +55,14 @@ Block::Block(int ID)
     }
 
     CalGroupPar();
+
+    m_PVR = 0;
+    m_FWHM = 0;
 }
 
 
 Block::~Block()
-{   
+{
     for (auto var : m_crystals)
     {
         delete var;
@@ -272,7 +278,7 @@ void Block::Segment1()
                 cv::Point2f u(0, 0);
                 qreal d = 0;
 
-                int r = 6;
+                int r = 3;
                 for (int n = x.y-r; n <= x.y+r; ++n)
                 {
                     for (int m = x.x-r; m <= x.x+r; ++m)
@@ -429,7 +435,7 @@ void Block::CalSegResult()
             if(id0!=id1 || id0!=id2)
             {
                 m_edge(i, j) = 1;
-                m_segMap(i, j) = max_val*1.1;
+                m_segMap(i, j) = max_val;
             }
         }
     }
@@ -474,13 +480,39 @@ void Block::CalRecEHist()
 void Block::CalSegFOM()
 {
     // step 5, 求分割质量参数
-    // IR 是图像均值比去分割线上的计数，越大质量越好
-    // rms 是各个分割区域的均方差，越小越好
-    quint64 totalEvts = 0;
+    // calculate peaks mean-height
+
+    //cv::Mat I1;
+    //cv::blur(m_I0, I1, cv::Size(3, 3));
+
+    qreal peak_total_evts = 0;
+    qreal totalFWHM = 0;
+    for (int i = 0; i < nCrystal; ++i)
+    {
+        for (int j = 0; j < nCrystal; ++j)
+        {
+            int x = m_pt(i, j)[0];
+            int y = m_pt(i, j)[1];
+            peak_total_evts += m_I0(y, x);
+
+            // reduce 3*15 matrix to line, then find FWHM
+            // x direction
+            cv::Mat M1 = m_I0(cv::Rect(x-7, y-1, 15, 3));
+            qreal FWHM_x = CalFWHM(M1);
+
+            // y direction
+            cv::Mat M2 = m_I0(cv::Rect(x-1, y-7, 3, 15));
+            qreal FWHM_y = CalFWHM(M2.t());
+
+            qreal FWHM_xy = (FWHM_x + FWHM_y)/2;
+            totalFWHM += FWHM_xy;
+        }
+    }
+    qreal peak_mean_height = peak_total_evts/crystalNum;
+
+    // valley mean-height
     quint64 edgeEvts = 0;
     quint64 edgeN = 0;
-    QVector< QVector<int> > nEvts(crystalNum);
-    int pixelCounter = 0;
     for (int i = 0; i < nPixel; ++i)
     {
         for (int j = 0; j < nPixel; ++j)
@@ -488,49 +520,19 @@ void Block::CalSegFOM()
             if ( ymin<i && i<ymax && xmin<j && j<xmax )
             {
                 int aN = static_cast<int>(m_I0(i, j));
-                pixelCounter++;
-                totalEvts += aN;        
-
                 if ( 1==m_edge(i, j) )
                 {
                     edgeN++;
                     edgeEvts += aN;
                 }
-
-                int crystalID = m_segr(i, j);
-                nEvts[crystalID].append(aN);
             }
         }
     }
 
-    m_IR = 1.0*totalEvts/pixelCounter/(1.0*edgeEvts/edgeN);
+    qreal valley_mean_height = 1.0*edgeEvts/edgeN;
 
-    QVector<qreal> RMS;
-    for (int iCrystal=0; iCrystal<crystalNum; ++iCrystal)
-    {
-        // 求每个晶体的rms
-        QVector<int> data = nEvts[iCrystal];
-        int sum = std::accumulate(data.begin(), data.end(), 0);
-        qreal mean = 1.0*sum/data.size();
-
-        // 计算每个数据点与平均值的差值的平方和
-        qreal sumSquaredDiff = 0.0;
-        for (auto value : data)
-        {
-            qreal diff = value - mean;
-            sumSquaredDiff += diff * diff;
-        }
-
-        // 求平方和的平均值
-        qreal meanSquaredDiff = sumSquaredDiff / data.size();
-
-        // 取平方根，即均方差
-        qreal aRMS = sqrt(meanSquaredDiff);
-        RMS.append(aRMS);
-    }
-
-    // 求所有晶体的平均RMS
-    m_RMS = std::accumulate(RMS.begin(), RMS.end(), 0.0)/RMS.size();
+    m_PVR = peak_mean_height/valley_mean_height;
+    m_FWHM = totalFWHM/crystalNum;
 }
 
 
@@ -694,19 +696,57 @@ cv::Mat_<qreal> Block::GetSegMap()
 qreal Block::GetER()
 {
     m_recEHist->Smooth();
+    m_recEHist->SetCutValue(recE_cutValue);
     return m_recEHist->GetResolution();
 }
 
 
-qreal Block::GetIR()
+qreal Block::GetPVR()
 {
-    return m_IR;
+    return m_PVR;
 }
 
 
-qreal Block::GetRMS()
+qreal Block::GetFWHM()
 {
-    return m_RMS;
+    return m_FWHM;
+}
+
+
+qreal Block::CalFWHM(cv::Mat I)
+{
+    cv::Mat col_sum;
+    cv::reduce(I, col_sum, 0, cv::REDUCE_SUM);
+
+    cv::Mat resizedMat;
+    cv::resize(col_sum, resizedMat,
+               cv::Size(I.cols*10, 1), 0, 0, cv::INTER_LINEAR);
+
+    cv::Mat blurredMat;
+    cv::blur(resizedMat, blurredMat, cv::Size(10, 1));
+
+    QVector<qreal> v = {blurredMat.begin<qreal>(),
+                        blurredMat.end<qreal>()};
+
+    int peakIdx = std::max_element(v.begin(), v.end()) - v.begin();
+    qreal peakValue = v[peakIdx];
+
+    qreal halfMax = peakValue/2;
+    int leftIdx = peakIdx;
+    int rightIdx = peakIdx;
+
+    while (leftIdx>0 && v[leftIdx]>halfMax)
+    {
+        leftIdx--;
+    }
+
+    while (rightIdx<v.size()-1 && v[rightIdx]>halfMax)
+    {
+        rightIdx++;
+    }
+
+    qreal FWHM = (rightIdx - leftIdx)/10.0; // 半高宽
+    return FWHM;
 }
 
 
@@ -773,7 +813,7 @@ QVector<int> Block::FindPeaks(QVector<qreal> v, int nPeaks)
         int maxIdx = std::max_element( v.begin(), v.end() ) - v.begin();
         peaks.append(maxIdx);
 
-        int r = 6;
+        int r = 5;
         int start = std::max(maxIdx-r, 0);
         int stop = std::min(maxIdx+r, nPixel-1);
         for (int i=start; i<=stop; ++i)

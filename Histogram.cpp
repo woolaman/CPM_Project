@@ -23,6 +23,10 @@ Histogram::Histogram(qreal aXmin, qreal aXmax, int nBins)
     {
         m_binCenters[i] = m_xmin + i*m_binWidth + m_binWidth/2;
     }
+
+    m_cutValue = 0;
+    m_leftValue = 0;
+    m_rightValue = 0;
 }
 
 
@@ -139,6 +143,13 @@ qreal Histogram::GetResolution()
     m_leftValue = m_binCenters[leftIdx];
     m_rightValue = m_binCenters[rightIdx];
     qreal FWHM = m_rightValue - m_leftValue; // 半高宽
+
+    if(0 == peak_x)
+    {
+        qDebug() << "peak x is 0, please check the crystal's data.";
+        return 0;
+    }
+
     return FWHM/peak_x;
 }
 

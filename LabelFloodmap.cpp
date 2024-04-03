@@ -6,7 +6,7 @@
 LabelFloodmap::LabelFloodmap(QWidget *parent)
     : QLabel(parent)
 {
-
+    m_pos = QPoint(0, 0);
 }
 
 

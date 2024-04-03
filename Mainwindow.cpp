@@ -1,4 +1,4 @@
-﻿#include "Mainwindow.h"
+﻿#include "MainWindow.h"
 #include "ui_mainwindow.h"
 
 #include <QtCore/QtCore>
@@ -167,7 +167,7 @@ void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
 
             int r = 4;
             painter.drawLine(x-r, y, x+r, y); // "——"
-            painter.drawLine(x, y-r, x, y+r); // "|"
+            //painter.drawLine(x, y-r, x, y+r); // "|"
             points.append(QPoint(x, y));
         }
         painter.drawPolyline(points.data(), points.size());
@@ -472,6 +472,11 @@ void MainWindow::on_label_floodmap_mouseLeftClicked()
         qreal slope = peakE/peakLoc;
         m_BK->GetCrystal(crystalID)->SetSlope(slope);
     }
+
+    if(3==imgFlag)
+    {
+       // nothing to do
+    }
 }
 
 
@@ -528,16 +533,43 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
     {
         // nothing to do!
     }
+
+    if(3==imgFlag)
+    {
+        int m = ui->lineEdit_colID->text().toInt();
+        int n = ui->lineEdit_rowID->text().toInt();
+
+        if(n>=nCrystal || m>=nCrystal)
+        {
+            qDebug() << "Row or col ID is out of range.";
+            return;
+        }
+
+        if(m==nCrystal-1)
+        {
+            n++;
+            m = 0;
+        }
+        else
+        {
+            m++;
+        }
+
+        ui->lineEdit_colID->setText(QString::number(m));
+        ui->lineEdit_rowID->setText(QString::number(n));
+
+        ShowRecEHist();
+    }
 }
 
 
 void MainWindow::on_pushButton_calSegFOM_clicked()
 {
     m_BK->CalSegFOM();
-    qreal IR = m_BK->GetIR();
-    qreal meanRMS = m_BK->GetRMS();
-    ui->lineEdit_IR->setText(QString::number(IR, 'f', 2));
-    ui->lineEdit_RMS->setText(QString::number(meanRMS, 'f', 2));
+    qreal PVR = m_BK->GetPVR();
+    qreal FWHM = m_BK->GetFWHM();
+    ui->lineEdit_PVR->setText(QString::number(PVR, 'f', 2));
+    ui->lineEdit_FWHM->setText(QString::number(FWHM, 'f', 2));
 }
 
 
@@ -614,6 +646,7 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     // 计算总分辨率
     qDebug() << "Calculate the whole block energy resolution.";
     qreal totalER = m_BK->GetER()*100;
+    qDebug() << "total ER = "  << totalER << " %";
     Histogram* eHist = m_BK->GetRecEHist();
 
     // 画总能谱在 label_ehist
@@ -777,5 +810,45 @@ void MainWindow::ReStoreData()
     }
 
     QMessageBox::information(this, "读入数据", "读入数据完成。");
+}
+
+
+void MainWindow::on_pushButton_crystalES_clicked()
+{
+    imgFlag = 3;
+    EWLeftLine->replace(0, -1, 0);
+    EWLeftLine->replace(1, -1, 1);
+
+    EWRightLine->replace(0, -1, 0);
+    EWRightLine->replace(1, -1, 1);
+
+    ShowRecEHist();
+}
+
+
+void MainWindow::ShowRecEHist()
+{
+    int rowID = ui->lineEdit_rowID->text().toInt();
+    int colID = ui->lineEdit_colID->text().toInt();
+
+    int crystalID = rowID * nCrystal + colID;
+    auto iHist = m_BK->GetCrystal(crystalID)->GetRecEHist();
+    QVector<QPointF> points;
+    for (int i = 0; i < recE_nBins; ++i)
+    {
+        qreal x = iHist->GetBinCenter(i);
+        qreal y = iHist->GetBinContent(i);
+        points.append(QPointF(x, y));
+    }
+    eHistLine->replace(points);
+
+    peakLine->replace(0, -1, 0);
+    peakLine->replace(1, -1, 1);
+
+    axisX->setRange(recE_min, recE_max);
+    axisY->setRange(0, iHist->GetPeak().y()*1.1);
+
+    QPixmap pixmap = chartView->grab();
+    ui->label_floodmap->setPixmap(pixmap);
 }
 

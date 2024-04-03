@@ -45,8 +45,10 @@ public:
     cv::Mat_<qreal> GetSegMap();
 
     qreal GetER();
-    qreal GetIR();
-    qreal GetRMS();
+    qreal GetPVR();
+    qreal GetFWHM();
+
+    qreal CalFWHM(cv::Mat I);
 
     void Clear();
 
@@ -73,8 +75,8 @@ private: // private members
     int m_num1;
     int m_num2;
 
-    qreal m_IR;
-    qreal m_RMS;
+    qreal m_PVR;
+    qreal m_FWHM;
 
 
 private: // private functions
