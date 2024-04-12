@@ -2,6 +2,8 @@
 
 #include <QDebug>
 #include <QFile>
+#include <QDataStream>
+#include <QtCore>
 
 #include "opencv2/imgproc.hpp"
 #include "gsl/gsl_linalg.h"
@@ -189,7 +191,7 @@ void Block::Segment1()
             m_pt(i, j)[1] = peak_y_index[i];
         }
     }
-    qDebug() << "所有晶体初始位置设置完毕。";
+    qDebug() << QString::fromLocal8Bit("所有晶体初始位置设置完毕。");
 
     // step1，每组整体做平均值移动
     for (int iRow = 0; iRow < m_num1; ++iRow)
@@ -263,7 +265,7 @@ void Block::Segment1()
             }
         }
     }
-    qDebug() << "第一次平均值移动迭代，每组峰位移动完成。";
+    qDebug() << QString::fromLocal8Bit("第一次平均值移动迭代，每组峰位移动完成。");
 
     // step2, all peak 做平均值移动, 使得每个峰做小范围移动
     for (int iRow = 0; iRow < nCrystal; ++iRow)
@@ -307,7 +309,7 @@ void Block::Segment1()
             m_pt(iRow, iCol)[1] = qRound(x.y);
         }
     }
-    qDebug() << "第二次平均值移动迭代。所有峰位寻找完成。";
+    qDebug() << QString::fromLocal8Bit("第二次平均值移动迭代。所有峰位寻找完成。");
 }
 
 
@@ -467,8 +469,9 @@ void Block::CalRecEHist()
         m_crystals[ID]->Fill(e);
     }
 
-    for (auto aCrystal : m_crystals)
+    for (int i = 0; i < m_crystals.size(); ++i)
     {
+        auto aCrystal = m_crystals[i];
         aCrystal->CalRecEHist();
         auto iRecEHist = aCrystal->GetRecEHist();
         iRecEHist->SetCutValue(recE_cutValue);
@@ -619,7 +622,7 @@ void Block::GenPositionLUT()
     }
 
     file.close();
-    qDebug() << "位置查找表已生成: " + fName_LUT_P;
+    qDebug() << QString::fromLocal8Bit("位置查找表已生成: ") + fName_LUT_P;
 }
 
 
@@ -628,7 +631,7 @@ void Block::GenEnergyLUT()
     QFile file(currentPath + fName_LUT_E);
     if(!file.open(QIODevice::WriteOnly))
     {
-        qDebug() << "打开文件失败，无法生成能量查找表。";
+        qDebug() << QString::fromLocal8Bit("打开文件失败，无法生成能量查找表。");
         return;
     }
 
@@ -640,7 +643,7 @@ void Block::GenEnergyLUT()
     }
 
     file.close();
-    qDebug() << "能量查找表已生成: " + fName_LUT_E;
+    qDebug() << QString::fromLocal8Bit("能量查找表已生成: ") + fName_LUT_E;
 }
 
 
@@ -756,9 +759,9 @@ void Block::Clear()
     m_yList.clear();
     m_eList.clear();
 
-    for (auto aCrystal : m_crystals)
+    for (int i = 0; i < m_crystals.size(); ++i)
     {
-        aCrystal->Clear();
+        m_crystals[i]->Clear();
     }
 
     m_ADCHist->Clear();

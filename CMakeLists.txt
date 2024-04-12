@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.24)
+﻿cmake_minimum_required(VERSION 3.16)
 
 project(CPM VERSION 0.1 LANGUAGES CXX)
 
@@ -9,17 +9,17 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 COMPONENTS Core Gui Widgets Charts REQUIRED)
 
+find_package(Qt5 COMPONENTS Core Gui Widgets Charts REQUIRED)
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-include(C:/vcpkg/scripts/buildsystems/vcpkg.cmake)
+include(D:/vcpkg/scripts/buildsystems/vcpkg.cmake)
 find_package(GSL REQUIRED)
 
 
-set(PROJECT_SOURCES
+add_executable(CPM
     main.cpp
     MainWindow.cpp
     MainWindow.h
@@ -44,11 +44,6 @@ set(PROJECT_SOURCES
     ParameterForm.h
     ParameterForm.cpp
     ParameterForm.ui
-)
-
-qt_add_executable(CPM
-    MANUAL_FINALIZATION
-    ${PROJECT_SOURCES}
     logo.rc
 )
 
@@ -76,6 +71,6 @@ install(TARGETS CPM
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-if(QT_VERSION_MAJOR EQUAL 6)
+if(QT_VERSION_MAJOR EQUAL 5)
     qt_finalize_executable(CPM)
 endif()

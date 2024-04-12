@@ -1,4 +1,4 @@
-#ifndef PETRING_H
+﻿#ifndef PETRING_H
 #define PETRING_H
 
 #include <QVector>

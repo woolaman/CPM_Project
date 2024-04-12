@@ -1,4 +1,4 @@
-#ifndef MODULE_H
+﻿#ifndef MODULE_H
 #define MODULE_H
 
 #include "Block.h"

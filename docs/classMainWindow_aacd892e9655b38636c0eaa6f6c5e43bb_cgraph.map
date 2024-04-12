@@ -1,0 +1,9 @@
+<map id="MainWindow::on_pushButton_calPeaks_clicked" name="MainWindow::on_pushButton_calPeaks_clicked">
+<area shape="rect" id="node1" title=" " alt="" coords="5,99,196,141"/>
+<area shape="rect" id="node2" href="$classMainWindow.html#ae531143c14b8e1d97b08886804534329" title=" " alt="" coords="244,107,433,133"/>
+<area shape="rect" id="node3" href="$classCrystal.html#a34e9454fb918c436c313276bed491fd0" title=" " alt="" coords="497,5,642,32"/>
+<area shape="rect" id="node4" href="$classHistogram.html#aaa0b8d77f8c760ad6a4cf67719e3d6f8" title=" " alt="" coords="485,56,654,83"/>
+<area shape="rect" id="node5" href="$classHistogram.html#a9f4087047f3214e15009c119af0bc259" title=" " alt="" coords="481,107,657,133"/>
+<area shape="rect" id="node6" href="$classBlock.html#af7d9113b561a9c797cb93213ddadccdd" title=" " alt="" coords="507,157,632,184"/>
+<area shape="rect" id="node7" href="$classHistogram.html#a56632cefb356109b25a0ed8ada5724ce" title=" " alt="" coords="499,208,639,235"/>
+</map>

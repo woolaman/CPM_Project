@@ -10,6 +10,12 @@
     <height>848</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>微软雅黑</family>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -25,6 +31,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -46,6 +53,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -64,6 +72,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -82,6 +91,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -103,6 +113,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -121,6 +132,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -139,6 +151,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -157,6 +170,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -175,6 +189,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -191,6 +206,12 @@
       <height>48</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <layout class="QFormLayout" name="formLayout_crystalIDEdit">
      <property name="labelAlignment">
       <set>Qt::AlignCenter</set>
@@ -202,6 +223,7 @@
       <widget class="QLabel" name="label_rowID">
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -217,6 +239,7 @@
       <widget class="QLabel" name="label_colID">
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -238,6 +261,7 @@
        </property>
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -259,6 +283,7 @@
        </property>
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -281,6 +306,12 @@
       <height>71</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <layout class="QFormLayout" name="formLayout_BKIDEdit">
      <property name="labelAlignment">
       <set>Qt::AlignCenter</set>
@@ -292,6 +323,7 @@
       <widget class="QLabel" name="label_CMID">
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -307,6 +339,7 @@
       <widget class="QLabel" name="label_BKID">
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -328,6 +361,7 @@
        </property>
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -349,6 +383,7 @@
        </property>
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -371,6 +406,12 @@
       <height>48</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <layout class="QFormLayout" name="formLayout_EWEdit">
      <property name="labelAlignment">
       <set>Qt::AlignCenter</set>
@@ -382,6 +423,7 @@
       <widget class="QLabel" name="label_minEW">
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -394,6 +436,7 @@
       <widget class="QLabel" name="label_maxEW">
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -415,6 +458,7 @@
        </property>
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -436,6 +480,7 @@
        </property>
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -460,6 +505,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -484,6 +530,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -505,6 +552,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -526,6 +574,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -542,6 +591,12 @@
       <height>48</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <layout class="QFormLayout" name="formLayout_segFOM">
      <property name="labelAlignment">
       <set>Qt::AlignCenter</set>
@@ -553,6 +608,7 @@
       <widget class="QLabel" name="label_PVR">
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -568,6 +624,7 @@
       <widget class="QLabel" name="label_FWHM">
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -589,6 +646,7 @@
        </property>
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -616,6 +674,7 @@
        </property>
        <property name="font">
         <font>
+         <family>微软雅黑</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -640,6 +699,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -658,6 +718,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -676,6 +737,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>
@@ -694,6 +756,7 @@
     </property>
     <property name="font">
      <font>
+      <family>微软雅黑</family>
       <pointsize>10</pointsize>
      </font>
     </property>

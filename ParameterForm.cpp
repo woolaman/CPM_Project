@@ -4,6 +4,7 @@
 #include "MainWindow.h"
 
 #include <QFile>
+#include <QDebug>
 
 
 ParameterForm::ParameterForm(QWidget *parent)

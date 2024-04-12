@@ -1,4 +1,4 @@
-#ifndef LABELFLOODMAP_H
+﻿#ifndef LABELFLOODMAP_H
 #define LABELFLOODMAP_H
 
 #include <QApplication>

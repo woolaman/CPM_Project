@@ -71,15 +71,16 @@ private:
     Readin* dataObject;
     Block* m_BK;
 
-    //oooooooOOOOOOOOOoooooooooooo // 能谱相关
-    QLineSeries* eHistLine;
-    QLineSeries* EWLeftLine;
-    QLineSeries* EWRightLine;
-    QLineSeries* peakLine;
-    QValueAxis*  axisX;
-    QValueAxis*  axisY;
-    QChart*      chart;
-    QChartView*  chartView;
+    // energy histogram
+    //oooooooOOOOOOOOOoooooooooooo
+    QtCharts::QLineSeries* eHistLine;
+    QtCharts::QLineSeries* EWLeftLine;
+    QtCharts::QLineSeries* EWRightLine;
+    QtCharts::QLineSeries* peakLine;
+    QtCharts::QValueAxis*  axisX;
+    QtCharts::QValueAxis*  axisY;
+    QtCharts::QChart*      chart;
+    QtCharts::QChartView*  chartView;
 
     qreal m_peakValue = 0;
     //oooooooOOOOOOOOOoooooooooooo

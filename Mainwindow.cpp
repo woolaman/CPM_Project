@@ -19,13 +19,13 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    qDebug() << "程序初始化开始...";
+    qDebug() << QString::fromLocal8Bit("初始化开始...");
 
     ui->setupUi(this);
 
     m_BK = new Block();
 
-    eHistLine = new QLineSeries();
+    eHistLine = new QtCharts::QLineSeries();
     eHistLine->setPen( QPen(Qt::black, 1) );
 
     for (int i = 0; i < ADC_nBins; ++i)
@@ -34,26 +34,26 @@ MainWindow::MainWindow(QWidget *parent)
         eHistLine->append(x, -1);
     }
 
-    EWLeftLine = new QLineSeries();
+    EWLeftLine = new QtCharts::QLineSeries();
     EWLeftLine->setPen( QPen(Qt::red, 1));
     EWLeftLine->append(-1, 0);
     EWLeftLine->append(-1, 1);
 
-    EWRightLine = new QLineSeries();
+    EWRightLine = new QtCharts::QLineSeries();
     EWRightLine->setPen( QPen(Qt::red, 1));
     EWRightLine->append(-1, 0);
     EWRightLine->append(-1, 1);
 
-    peakLine = new QLineSeries();
+    peakLine = new QtCharts::QLineSeries();
     peakLine->setPen( QPen(Qt::red, 1));
     peakLine->append(-1, 0);
     peakLine->append(-1, 1);
 
-    chart = new QChart();
-    chartView = new QChartView();
+    chart = new QtCharts::QChart();
+    chartView = new QtCharts::QChartView();
 
-    axisX = new QValueAxis();
-    axisY = new QValueAxis();
+    axisX = new QtCharts::QValueAxis();
+    axisY = new QtCharts::QValueAxis();
 
     chart->addSeries(eHistLine);
     chart->addSeries(EWLeftLine);
@@ -93,13 +93,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->label_eHist->setPixmap(pixmap);
 
     ShowImage(cv::Mat::zeros(nPixel, nPixel, CV_64FC1));
-    qDebug() << "初始化完成。";
+    qDebug() << QString::fromLocal8Bit("初始化结束。");
 }
 
 
 MainWindow::~MainWindow()
 {
-    qDebug() << "程序关闭。";
+    qDebug() << QString::fromLocal8Bit("程序关闭。");
 }
 
 
@@ -179,7 +179,7 @@ void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
 
 void MainWindow::on_pushButton_readinData_clicked()
 {
-    qDebug() << "开始读入数据...";
+    qDebug() << "Readin data start ...";
     QString fName = ui->lineEdit_dataPath->text();
     fName.replace("\\", "/");
     fName = fName.trimmed().remove(QChar('\"'));
@@ -221,11 +221,11 @@ void MainWindow::on_pushButton_setEW_clicked()
     QString fName = currentPath + "Data/data.bin";
     if (!QFile::exists(fName))
     {
-        qDebug() << "文件不存在，请检查文件是否存在。";
+        qDebug() << "file does not exist, please chech file!";
         return;
     }
 
-    qDebug() << "Start to readin data: " << fName;
+    qDebug() << QString::fromLocal8Bit("开始读入数据...") << fName;
     QFile file(fName);
     if (file.open(QIODevice::ReadOnly))
     {
@@ -243,11 +243,11 @@ void MainWindow::on_pushButton_setEW_clicked()
             }
         }
         file.close();
-        qDebug() << "Readin data has been done.";
+        qDebug() << QString::fromLocal8Bit("读入数据完毕。");
     }
     else
     {
-        qDebug() << "文件打开失败，请检查文件是否正确。";
+        qDebug() << QString::fromLocal8Bit("打开文件失败! ");
         return;
     }
 
@@ -290,7 +290,7 @@ void MainWindow::on_pushButton_setEW_clicked()
 
     ui->lineEdit_minEW->setText(QString::number(minEW));
     ui->lineEdit_maxEW->setText(QString::number(maxEW));
-    qDebug() << "画出整个BK能谱，并自动生成峰值左右各25%能窗参数。";
+    qDebug() << "draw bk ADC histogram, and auto-gen 25% energy window.";
 
     // 参照能窗的设置参数，筛选数据
     m_BK->CalMap(minEW, maxEW);
@@ -302,7 +302,7 @@ void MainWindow::on_pushButton_setEW_clicked()
 
 void MainWindow::on_pushButton_segment_clicked()
 {
-    qDebug() << "开始分割...";
+    qDebug() << QString::fromLocal8Bit("开始分割...");
     imgFlag = 0;
     m_BK->Segment(segMethod);
     ShowPeaks(m_BK->GetMap(), m_BK->GetPeakTable());
@@ -314,7 +314,7 @@ void MainWindow::on_pushButton_segment_clicked()
 void MainWindow::on_pushButton_genPositionLUT_clicked()
 {
     m_BK->GenPositionLUT();
-    QMessageBox::information(this, "位置校正表", "位置查找表已生成。");
+    QMessageBox::information(this, "Position LUT", "Position LUT is saved to disk.");
 }
 
 
@@ -322,7 +322,7 @@ void MainWindow::on_pushButton_genEnergyLUT_clicked()
 {
     m_BK->CalRecEHist();
     m_BK->GenEnergyLUT();
-    QMessageBox::information(this, "能量校正表", "能量校正表已生成。");
+    QMessageBox::information(this, "Energy LUT", "Energy LUT is saved to disk.");
 }
 
 
@@ -475,7 +475,7 @@ void MainWindow::on_label_floodmap_mouseLeftClicked()
 
     if(3==imgFlag)
     {
-       // nothing to do
+        // nothing to do
     }
 }
 
@@ -487,8 +487,8 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
         m_BK->CalSegResult();
         ShowImage(m_BK->GetSegMap());
         // 保存分割结果图片
-        QPixmap pixmap = ui->label_floodmap->pixmap();
-        QImage image = pixmap.toImage();
+        const QPixmap *pixmap = ui->label_floodmap->pixmap();
+        QImage image = pixmap->toImage();
         QString figName = "./Data/segResult.png";
         if ( image.save(figName) )
         {
@@ -499,7 +499,7 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
             qDebug() << "Failed to save image to" << figName;
         }
 
-        QMessageBox::information(this, "分割过程", "分割完毕。");
+        QMessageBox::information(this, "Segment", "Segment is done.");
     }
 
     if(1==imgFlag)
@@ -578,7 +578,7 @@ void MainWindow::on_pushButton_writePeaks_clicked()
     QFile file(currentPath + fName_LUT_E);
     if(!file.open(QIODevice::WriteOnly))
     {
-        qDebug() << "打开文件失败，无法生成能量查找表。";
+        qDebug() << "Fail to open file，unable to gen energy LUT file.";
         return;
     }
 
@@ -590,7 +590,7 @@ void MainWindow::on_pushButton_writePeaks_clicked()
     }
 
     file.close();
-    qDebug() << "能量查找表已重新生成: " + fName_LUT_E;
+    qDebug() << "Energy LUT is regenerated: " + fName_LUT_E;
 }
 
 
@@ -612,7 +612,7 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
 
     ShowImage(ERMat);
 
-    QPixmap aPixmap = ui->label_floodmap->pixmap();
+    QPixmap aPixmap = *ui->label_floodmap->pixmap();
     QPainter aPainter(&aPixmap);
     aPainter.setPen(QPen(Qt::black, 1));
 
@@ -708,7 +708,7 @@ void MainWindow::on_pushButton_calUniformity_clicked()
     qreal mean_nEvts = 1.0*totalEvts/(crystalNum);
     cv::Mat_<qreal> uniformityPar = mean_nEvts/nEvts;
 
-    QPixmap aPixmap = ui->label_floodmap->pixmap();
+    QPixmap aPixmap = *ui->label_floodmap->pixmap();
     QPainter aPainter(&aPixmap);
     aPainter.setPen(QPen(Qt::black, 1));
     aPainter.setFont(QFont("Arial", 10));
@@ -741,7 +741,7 @@ void MainWindow::on_pushButton_calUniformity_clicked()
     }
     else
     {
-        qDebug() << "均匀性查找表生成失败。";
+        qDebug() << QString::fromLocal8Bit("均匀性查找表生成失败。");
     }
 }
 
@@ -809,7 +809,8 @@ void MainWindow::ReStoreData()
         return;
     }
 
-    QMessageBox::information(this, "读入数据", "读入数据完成。");
+    QMessageBox::information(this, QString::fromLocal8Bit("读入数据"),
+                             QString::fromLocal8Bit("读入数据完成。"));
 }
 
 

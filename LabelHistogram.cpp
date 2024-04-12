@@ -1,4 +1,4 @@
-#include "LabelHistogram.h"
+﻿#include "LabelHistogram.h"
 
 
 LabelHistogram::LabelHistogram(QWidget *parent)
@@ -39,7 +39,6 @@ void LabelHistogram::mousePressEvent(QMouseEvent *event)
         emit mouseRightClicked();
     }
 
-    // 保留 QLabel 默认的处理
     QLabel::mousePressEvent(event);
 }
 

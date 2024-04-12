@@ -1,4 +1,4 @@
-#ifndef EHISTLABEL_H
+﻿#ifndef EHISTLABEL_H
 #define EHISTLABEL_H
 
 #include <QLabel>

@@ -52,7 +52,7 @@ void myMessageOutput(QtMsgType type,
                      const QMessageLogContext &context,
                      const QString &msg)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
+    QByteArray localMsg = msg.toUtf8();
     const char *file = context.file ? context.file : "";
     const char *function = context.function ? context.function : "";
     switch (type)

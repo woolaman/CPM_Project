@@ -7,8 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>382</width>
-    <height>760</height>
+    <height>764</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -17,13 +22,14 @@
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>1</y>
+     <y>0</y>
      <width>321</width>
-     <height>691</height>
+     <height>701</height>
     </rect>
    </property>
    <property name="font">
     <font>
+     <family>微软雅黑</family>
      <pointsize>10</pointsize>
     </font>
    </property>
@@ -44,6 +50,7 @@
       </property>
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -59,6 +66,7 @@
      <widget class="QLineEdit" name="lineEdit_nCM">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -80,6 +88,7 @@
       </property>
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -95,6 +104,7 @@
      <widget class="QLineEdit" name="lineEdit_nBK">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -110,6 +120,7 @@
      <widget class="QLabel" name="label_nCrystal">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -125,6 +136,7 @@
      <widget class="QLineEdit" name="lineEdit_nCrystal">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -140,6 +152,7 @@
      <widget class="QLabel" name="label_nPixel">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -155,6 +168,7 @@
      <widget class="QLineEdit" name="lineEdit_nPixel">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -170,6 +184,7 @@
      <widget class="QLabel" name="label_enlarge">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -185,6 +200,7 @@
      <widget class="QLineEdit" name="lineEdit_enlarge">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -200,6 +216,7 @@
      <widget class="QLabel" name="label_bias">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -215,6 +232,7 @@
      <widget class="QLineEdit" name="lineEdit_bias">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -230,6 +248,7 @@
      <widget class="QLabel" name="label_xmin">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -245,6 +264,7 @@
      <widget class="QLineEdit" name="lineEdit_xmin">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -260,6 +280,7 @@
      <widget class="QLabel" name="label_xmax">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -275,6 +296,7 @@
      <widget class="QLineEdit" name="lineEdit_xmax">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -290,6 +312,7 @@
      <widget class="QLabel" name="label_ymin">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -305,6 +328,7 @@
      <widget class="QLineEdit" name="lineEdit_ymin">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -320,6 +344,7 @@
      <widget class="QLabel" name="label_ymax">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -335,6 +360,7 @@
      <widget class="QLineEdit" name="lineEdit_ymax">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -350,6 +376,7 @@
      <widget class="QLabel" name="label_EW_width">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -365,6 +392,7 @@
      <widget class="QLineEdit" name="lineEdit_EW_width">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -380,6 +408,7 @@
      <widget class="QLabel" name="label_ADC_min">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -395,6 +424,7 @@
      <widget class="QLineEdit" name="lineEdit_ADC_min">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -410,6 +440,7 @@
      <widget class="QLabel" name="label_ADC_max">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -425,6 +456,7 @@
      <widget class="QLineEdit" name="lineEdit_ADC_max">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -440,6 +472,7 @@
      <widget class="QLabel" name="label_ADC_nBins">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -455,6 +488,7 @@
      <widget class="QLineEdit" name="lineEdit_ADC_nBins">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -470,6 +504,7 @@
      <widget class="QLabel" name="label_ADC_cutValue">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -485,6 +520,7 @@
      <widget class="QLineEdit" name="lineEdit_ADC_cutValue">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -500,6 +536,7 @@
      <widget class="QLabel" name="label_recE_min">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -515,6 +552,7 @@
      <widget class="QLineEdit" name="lineEdit_recE_min">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -530,6 +568,7 @@
      <widget class="QLabel" name="label_recE_max">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -545,6 +584,7 @@
      <widget class="QLineEdit" name="lineEdit_recE_max">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -560,6 +600,7 @@
      <widget class="QLabel" name="label_recE_nBins">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -575,6 +616,7 @@
      <widget class="QLineEdit" name="lineEdit_recE_nBins">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -590,6 +632,7 @@
      <widget class="QLabel" name="label_recE_cutValue">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -605,6 +648,7 @@
      <widget class="QLineEdit" name="lineEdit_recE_cutValue">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -620,6 +664,7 @@
      <widget class="QLabel" name="label_segMethod">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -635,6 +680,7 @@
      <widget class="QLineEdit" name="lineEdit_segMethod">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -650,6 +696,7 @@
      <widget class="QLabel" name="label_fName_LUT_P">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -665,6 +712,7 @@
      <widget class="QLineEdit" name="lineEdit_fName_LUT_P">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -680,6 +728,7 @@
      <widget class="QLabel" name="label_fName_LUT_E">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -695,6 +744,7 @@
      <widget class="QLineEdit" name="lineEdit_fName_LUT_E">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -710,6 +760,7 @@
      <widget class="QLabel" name="label_fName_LUT_U">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -725,6 +776,7 @@
      <widget class="QLineEdit" name="lineEdit_fName_LUT_U">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -740,6 +792,7 @@
      <widget class="QLabel" name="label_peakE">
       <property name="font">
        <font>
+        <family>微软雅黑</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -753,6 +806,12 @@
     </item>
     <item row="15" column="1">
      <widget class="QLineEdit" name="lineEdit_peakE">
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
       <property name="text">
        <string>511</string>
       </property>
@@ -770,14 +829,15 @@
    <property name="geometry">
     <rect>
      <x>29</x>
-     <y>700</y>
+     <y>710</y>
      <width>321</width>
      <height>48</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>12</pointsize>
+     <family>微软雅黑</family>
+     <pointsize>10</pointsize>
     </font>
    </property>
    <property name="text">

@@ -1,0 +1,7 @@
+<map id="MainWindow::on_pushButton_genEnergyLUT_clicked" name="MainWindow::on_pushButton_genEnergyLUT_clicked">
+<area shape="rect" id="node1" title=" " alt="" coords="5,23,196,65"/>
+<area shape="rect" id="node2" href="$classBlock.html#a1609954bfd2aef58c38aac4283c8038d" title=" " alt="" coords="251,5,388,32"/>
+<area shape="rect" id="node5" href="$classBlock.html#a11a28b7828906ee47f36862cf3314872" title=" " alt="" coords="244,56,395,83"/>
+<area shape="rect" id="node3" href="$classHistogram.html#a1ed08724ec01eeaa4aaefda028ebf01d" title=" " alt="" coords="443,5,556,32"/>
+<area shape="rect" id="node4" href="$classHistogram.html#a9f4087047f3214e15009c119af0bc259" title=" " alt="" coords="604,5,780,32"/>
+</map>
