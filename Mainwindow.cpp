@@ -157,10 +157,10 @@ void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
     QPainter painter(&pixmap);
     painter.setPen(QPen(Qt::green, 1));
 
-    for (int i = 0; i < nCrystal; ++i)
+    for (int i = 0; i < nCrystal-2; ++i)
     {
         QVector<QPoint> points;
-        for (int j = 0; j < nCrystal; ++j)
+        for (int j = 0; j < nCrystal-2; ++j)
         {
             int x = pt(j, i)[0];
             int y = pt(j, i)[1];
@@ -705,8 +705,33 @@ void MainWindow::on_pushButton_calUniformity_clicked()
 
     ShowImage(nEvts);
 
-    qreal mean_nEvts = 1.0*totalEvts/(crystalNum);
-    cv::Mat_<qreal> uniformityPar = mean_nEvts/nEvts;
+    // 获取中心的26x26区域
+    cv::Mat_<qreal> nEvts_center = nEvts(cv::Rect(1, 1, 26, 26));
+    //ShowImage(nEvts_center);
+
+    // 计算最大值和最小值
+    double minVal, maxVal;
+    cv::Point minLoc, maxLoc;
+    cv::minMaxLoc(nEvts_center, &minVal, &maxVal, &minLoc, &maxLoc);
+
+    // 计算平均值和方差
+    cv::Scalar mean, stdDev;
+    cv::meanStdDev(nEvts_center, mean, stdDev);
+    qreal meanVal = mean.val[0];
+    qreal stdDevVal = stdDev.val[0];
+
+    // 输出统计信息
+    qDebug() << "Max value: " << maxVal << ", relative value: " <<
+        QString::number( (maxVal/meanVal-1)*100, 'f', 2 ) << " %";
+    qDebug() << "Min value: " << minVal << ", relative value: " <<
+        QString::number( (1-minVal/meanVal)*100, 'f', 2 ) << " %";
+    qDebug() << "Mean value: " << meanVal;
+    qDebug() << "Standard deviation: " << stdDevVal << ", relative value: " <<
+        QString::number( (stdDevVal/meanVal)*100, 'f', 2 ) << " %";
+
+    //qreal mean_nEvts = 1.0*totalEvts/(crystalNum);
+    //cv::Mat_<qreal> uniformityPar = mean_nEvts/nEvts;
+    cv::Mat_<qreal> uniformityPar = meanVal/nEvts;
 
     QPixmap aPixmap = *ui->label_floodmap->pixmap();
     QPainter aPainter(&aPixmap);

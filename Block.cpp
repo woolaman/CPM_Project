@@ -14,11 +14,11 @@ Block::Block()
     m_ID = 0;
 
     m_I0 = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
-    m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
+    // m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
     m_edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
     m_segMap = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
 
-    m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
+    m_pt = cv::Mat_<cv::Vec2w>(nCrystal-2, nCrystal-2);
 
     m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
     m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
@@ -29,7 +29,7 @@ Block::Block()
         m_crystals.append(aCrystal);
     }
 
-    CalGroupPar();
+    CalGroupPar(nCrystal-2);
 
     m_PVR = 0;
     m_FWHM = 0;
@@ -41,11 +41,11 @@ Block::Block(int ID)
     m_ID = ID;
 
     m_I0 = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
-    m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
+    // m_segr = cv::Mat::zeros(nPixel, nPixel, CV_16UC1);
     m_edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
     m_segMap = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
 
-    m_pt = cv::Mat_<cv::Vec2w>(nCrystal, nCrystal);
+    m_pt = cv::Mat_<cv::Vec2w>(nCrystal-2, nCrystal-2);
 
     m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
     m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
@@ -56,7 +56,7 @@ Block::Block(int ID)
         m_crystals.append(aCrystal);
     }
 
-    CalGroupPar();
+    CalGroupPar(nCrystal-2);
 
     m_PVR = 0;
     m_FWHM = 0;
@@ -65,9 +65,9 @@ Block::Block(int ID)
 
 Block::~Block()
 {
-    for (auto var : m_crystals)
+    for (int i = 0; i < crystalNum; ++i)
     {
-        delete var;
+        delete m_crystals[i];
     }
 
     delete m_ADCHist;
@@ -180,12 +180,12 @@ void Block::Segment1()
 
     QVector<qreal> colSumVec = {col_sum.begin<qreal>(), col_sum.end<qreal>()};
     QVector<qreal> rowSumVec = {row_sum.begin<qreal>(), row_sum.end<qreal>()};
-    QVector<int> peak_x_index = FindPeaks(colSumVec, nCrystal);
-    QVector<int> peak_y_index = FindPeaks(rowSumVec, nCrystal);
+    QVector<int> peak_x_index = FindPeaks(colSumVec, nCrystal-2);
+    QVector<int> peak_y_index = FindPeaks(rowSumVec, nCrystal-2);
 
-    for (int i = 0; i < nCrystal; ++i)
+    for (int i = 0; i < nCrystal-2; ++i)
     {
-        for (int  j= 0; j < nCrystal; ++j)
+        for (int  j= 0; j < nCrystal-2; ++j)
         {
             m_pt(i, j)[0] = peak_x_index[j];
             m_pt(i, j)[1] = peak_y_index[i];
@@ -268,9 +268,9 @@ void Block::Segment1()
     qDebug() << QString::fromLocal8Bit("第一次平均值移动迭代，每组峰位移动完成。");
 
     // step2, all peak 做平均值移动, 使得每个峰做小范围移动
-    for (int iRow = 0; iRow < nCrystal; ++iRow)
+    for (int iRow = 0; iRow < nCrystal-2; ++iRow)
     {
-        for (int iCol = 0; iCol < nCrystal; ++iCol)
+        for (int iCol = 0; iCol < nCrystal-2; ++iCol)
         {
             cv::Point2f x(m_pt(iRow, iCol)[0], m_pt(iRow, iCol)[1]);
             cv::Point2f pre_x(0, 0);
@@ -324,7 +324,8 @@ void Block::Segment2() // maximum method to find peaks
     //I1 = I2;
 
     QVector<cv::Point> peaks;
-    for (int i = 0; i < crystalNum; ++i)
+    int nPeaks = (nCrystal-2) * (nCrystal-2);
+    for (int i = 0; i < nPeaks; ++i)
     {
         qreal minVal, maxVal;
         cv::Point minLoc, maxLoc;
@@ -350,18 +351,18 @@ void Block::Segment2() // maximum method to find peaks
     }
 
     // sort peaks
-    for (int iRow = 0; iRow < nCrystal; ++iRow)
+    for (int iRow = 0; iRow < nCrystal-2; ++iRow)
     {
         // 选出 y 值较小的 m_nCrystal 个点作为一行， y值升序排列
         std::sort(peaks.begin(), peaks.end(),
                   [](const cv::Point& p1, const cv::Point& p2){return p1.y < p2.y;});
 
-        QVector<cv::Point> rowPeaks(peaks.begin(), peaks.begin()+nCrystal);
+        QVector<cv::Point> rowPeaks(peaks.begin(), peaks.begin()+nCrystal-2);
         // 将他们按 x 值升序排列
         std::sort(rowPeaks.begin(), rowPeaks.end(),
                   [](const cv::Point& p1, const cv::Point& p2){return p1.x < p2.x;});
 
-        for (int iCol = 0; iCol < nCrystal; ++iCol)
+        for (int iCol = 0; iCol < nCrystal-2; ++iCol)
         {
             peaks.pop_front();
             m_pt(iRow, iCol)[0] = rowPeaks[iCol].x;
@@ -373,10 +374,10 @@ void Block::Segment2() // maximum method to find peaks
 
 void Block::ManualAdjust(QPoint pos)
 {
-    cv::Mat_<qreal> dis(nCrystal, nCrystal, 0.0);
-    for (int i = 0; i < nCrystal; ++i)
+    cv::Mat_<qreal> dis(nCrystal-2, nCrystal-2, 0.0);
+    for (int i = 0; i < nCrystal-2; ++i)
     {
-        for (int j = 0; j < nCrystal; ++j)
+        for (int j = 0; j < nCrystal-2; ++j)
         {
             cv::Point2f p1(m_pt(i, j)[0], m_pt(i, j)[1]);
             cv::Point2f p2(pos.x(), pos.y());
@@ -395,18 +396,22 @@ void Block::ManualAdjust(QPoint pos)
 void Block::CalSegResult()
 {
     //step 4, 开始分割, //计算像素点属于哪个峰
-    cv::Mat_<quint16> seg1(nPixel, nPixel); // 行信息
-    cv::Mat_<quint16> seg2(nPixel, nPixel); // 列信息
+    srand(time(0));
+    seg1 = cv::Mat_<quint16>(nPixel, nPixel); // 行信息
+    seg2 = cv::Mat_<quint16>(nPixel, nPixel); // 列信息
+
+    seg1_plus = cv::Mat_<quint16>(nPixel, nPixel); // 行信息
+    seg2_plus = cv::Mat_<quint16>(nPixel, nPixel); // 列信息
 
     for (int i = 0; i < nPixel; ++i)
     {
         for (int j = 0; j < nPixel; ++j)
         {
-            cv::Mat_<qreal> dis(nCrystal, nCrystal);
+            cv::Mat_<qreal> dis(nCrystal-2, nCrystal-2);
 
-            for (int iRow = 0; iRow < nCrystal; ++iRow)
+            for (int iRow = 0; iRow < nCrystal-2; ++iRow)
             {
-                for (int iCol = 0; iCol < nCrystal; ++iCol)
+                for (int iCol = 0; iCol < nCrystal-2; ++iCol)
                 {
                     cv::Point2f p(m_pt(iRow, iCol)[0], m_pt(iRow, iCol)[1]);
                     dis(iRow, iCol) = cv::norm(cv::Point2f(j, i)-p);
@@ -415,12 +420,77 @@ void Block::CalSegResult()
 
             cv::Point min_loc;
             cv::minMaxLoc(dis, NULL, NULL, &min_loc, NULL);
-            seg1(i, j) = min_loc.y;
-            seg2(i, j) = min_loc.x;
+
+            int rowID = min_loc.y;
+            int colID = min_loc.x;
+
+            seg1(i, j) = rowID;
+            seg2(i, j) = colID;
+
+
+            // 修正26=>28
+            if(0==rowID)
+            {
+                // 0 ==> 50% is 0, 50% is 1
+                int aN = rand() % 100;
+                if(aN<50)
+                {
+                    rowID++;
+                }
+            }
+            else if((nCrystal-3)==rowID)
+            {
+                // 25 ==> 50% is 26, 50% is 27
+                int aN = rand() % 100;
+                if(aN<50)
+                {
+                    rowID += 1;
+                }
+                else
+                {
+                    rowID += 2;
+                }
+            }
+            else
+            {
+                rowID++; // 1==>2, ..., 24==>25
+            }
+
+            if(0==colID)
+            {
+                // 0 ==> 50% is 0, 50% is 1
+                int aN = rand() % 100;
+                if(aN<50)
+                {
+                    colID++;
+                }
+            }
+            else if((nCrystal-3)==colID)
+            {
+                // 25 ==> 50% is 26, 50% is 27
+                int aN = rand() % 100;
+                if(aN<50)
+                {
+                    colID += 1;
+                }
+                else
+                {
+                    colID += 2;
+                }
+            }
+            else
+            {
+                colID++; // 1==>2, ..., 24==>25
+            }
+
+            seg1_plus(i, j) = rowID;
+            seg2_plus(i, j) = colID;
         }
     }
 
-    m_segr = seg1*nCrystal + seg2;
+    m_segr0 = seg1*(nCrystal-2) + seg2;
+    m_segr1 = seg1_plus*nCrystal + seg2_plus;
+
     m_edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
     m_segMap = m_I0.clone();
 
@@ -431,9 +501,9 @@ void Block::CalSegResult()
     {
         for (int j = 1; j < nPixel-1; ++j)
         {
-            int id0 = m_segr(i, j);
-            int id1 = m_segr(i+1, j);
-            int id2 = m_segr(i, j+1);
+            int id0 = m_segr0(i, j);
+            int id1 = m_segr0(i+1, j);
+            int id2 = m_segr0(i, j+1);
             if(id0!=id1 || id0!=id2)
             {
                 m_edge(i, j) = 1;
@@ -452,7 +522,7 @@ void Block::CalSegResult()
     cv::FileStorage fs(fileName.toStdString(), cv::FileStorage::WRITE);
     fs.write("floodmap", m_I0); // 将 I0 写入
     fs.write("edge", m_edge);   // 写入边界结果
-    fs.write("segr", m_segr);   // 写入分割结果
+    fs.write("segr", m_segr1);   // 写入分割结果
     fs.release();  // 关闭文件
 }
 
@@ -465,7 +535,7 @@ void Block::CalRecEHist()
         quint16 y = m_yList[i];
         quint16 e = m_eList[i];
 
-        quint16 ID = m_segr(y, x);
+        quint16 ID = m_segr1(y, x);
         m_crystals[ID]->Fill(e);
     }
 
@@ -482,6 +552,7 @@ void Block::CalRecEHist()
 
 void Block::CalSegFOM()
 {
+    int nPeaks = (nCrystal-2) * (nCrystal-2);
     // step 5, 求分割质量参数
     // calculate peaks mean-height
 
@@ -490,9 +561,9 @@ void Block::CalSegFOM()
 
     qreal peak_total_evts = 0;
     qreal totalFWHM = 0;
-    for (int i = 0; i < nCrystal; ++i)
+    for (int i = 0; i < nCrystal-2; ++i)
     {
-        for (int j = 0; j < nCrystal; ++j)
+        for (int j = 0; j < nCrystal-2; ++j)
         {
             int x = m_pt(i, j)[0];
             int y = m_pt(i, j)[1];
@@ -511,7 +582,7 @@ void Block::CalSegFOM()
             totalFWHM += FWHM_xy;
         }
     }
-    qreal peak_mean_height = peak_total_evts/crystalNum;
+    qreal peak_mean_height = peak_total_evts / nPeaks;
 
     // valley mean-height
     quint64 edgeEvts = 0;
@@ -534,8 +605,8 @@ void Block::CalSegFOM()
 
     qreal valley_mean_height = 1.0*edgeEvts/edgeN;
 
-    m_PVR = peak_mean_height/valley_mean_height;
-    m_FWHM = totalFWHM/crystalNum;
+    m_PVR = peak_mean_height / valley_mean_height;
+    m_FWHM = totalFWHM / nPeaks;
 }
 
 
@@ -551,73 +622,14 @@ void Block::GenPositionLUT()
 
     QDataStream out(&file);
 
-    srand(time(0));
-
     // 写入矩阵数据
     for (int i = 0; i < nPixel; ++i)
     {
         for (int j = 0; j < nPixel; ++j)
         {
-            int ID = m_segr(i, j);
-            int rowID = ID / nCrystal; // 0 -- nCrystal-1
-            int colID = ID % nCrystal;
-
-            if(0==rowID)
-            {
-                // 0 ==> 50% is 0, 50% is 1
-                int aN = rand() % 100;
-                if(aN<50)
-                {
-                    rowID++;
-                }
-            }
-            else if((nCrystal-1)==rowID)
-            {
-                // nCrystal-1 ==> 50% is nCrystal, 50% is nCrystal + 1
-                int aN = rand() % 100;
-                if(aN<50)
-                {
-                    rowID += 1;
-                }
-                else
-                {
-                    rowID += 2;
-                }
-            }
-            else
-            {
-                rowID++; // 1==>2, ..., nCrystal-2 ==> nCrystal-1
-            }
-
-            if(0==colID)
-            {
-                // 0 ==> 50% is 0, 50% is 1
-                int aN = rand() % 100;
-                if(aN<50)
-                {
-                    colID++;
-                }
-            }
-            else if((nCrystal-1)==colID)
-            {
-                // nCrystal-1 ==> 50% is nCrystal, 50% is nCrystal + 1
-                int aN = rand() % 100;
-                if(aN<50)
-                {
-                    colID += 1;
-                }
-                else
-                {
-                    colID += 2;
-                }
-            }
-            else
-            {
-                colID++; // 1==>2, ..., nCrystal-2 ==> nCrystal-1
-            }
-
-            quint16 newID = rowID * (nCrystal+2) + colID;
-            out << newID;
+            quint16 rowID = seg1_plus(i, j);
+            quint16 colID = seg2_plus(i, j);
+            out << colID << rowID;
         }
     }
 
@@ -637,10 +649,15 @@ void Block::GenEnergyLUT()
 
     QDataStream outStream(&file);
 
+    //qreal sumSlope = 0;
     for (int i = 0; i < crystalNum; ++i)
     {
-        outStream << m_crystals[i]->GetSlope();
+        qreal slope = m_crystals[i]->GetSlope();
+        outStream << slope;
+        //sumSlope += slope;
+        //qDebug() << "crystal " << i << " , slope = " << slope;
     }
+    //qDebug() << "mean of slope = " << sumSlope/crystalNum;
 
     file.close();
     qDebug() << QString::fromLocal8Bit("能量查找表已生成: ") + fName_LUT_E;
@@ -684,9 +701,17 @@ cv::Mat_<cv::Vec2w> Block::GetPeakTable()
 }
 
 
-cv::Mat_<quint16> Block::GetSegResult()
+cv::Mat_<quint16> Block::GetSegResult(int n)
 {
-    return m_segr;
+    if(0==n)
+    {
+        return m_segr0;
+    }
+
+    if(1==n)
+    {
+        return m_segr1;
+    }
 }
 
 
@@ -769,25 +794,26 @@ void Block::Clear()
 
     m_I0.setTo(0);
     m_pt.setTo(cv::Vec2w(0, 0));
-    m_segr.setTo(0);
+    m_segr0.setTo(0);
+    m_segr1.setTo(0);
     m_edge.setTo(0);
     m_segMap.setTo(0);
 }
 
 
-void Block::CalGroupPar()
+void Block::CalGroupPar(int N)
 {
     int n1 = 0;
     int n2 = 0;
-    int minDiff = nCrystal; // 初始最小差值为 n
+    int minDiff = N; // 初始最小差值为 n
 
-    // 在 2 到 √n 之间搜索因子
-    for (int i = 2; i <= qSqrt(nCrystal); ++i)
+    // 在 2 到 sqrt(N) 之间搜索因子
+    for (int i = 2; i <= qSqrt(N); ++i)
     {
-        if (nCrystal % i == 0)
+        if (N % i == 0)
         {
             int factor1 = i;
-            int factor2 = nCrystal / i;
+            int factor2 = N / i;
             int diff = qAbs(factor2 - factor1); // 计算差值
 
             // 如果当前差值更小，则更新最小差值和对应的因子

@@ -41,7 +41,7 @@ public:
 
     cv::Mat_<qreal> GetMap();
     cv::Mat_<cv::Vec2w> GetPeakTable();
-    cv::Mat_<quint16> GetSegResult();
+    cv::Mat_<quint16> GetSegResult(int n);
     cv::Mat_<qreal> GetSegMap();
 
     qreal GetER();
@@ -66,7 +66,15 @@ private: // private members
     Histogram* m_recEHist;
 
     cv::Mat_<qreal> m_I0;
-    cv::Mat_<quint16> m_segr;
+
+    cv::Mat_<quint16> seg1;
+    cv::Mat_<quint16> seg2;
+    cv::Mat_<quint16> seg1_plus;
+    cv::Mat_<quint16> seg2_plus;
+
+    cv::Mat_<quint16> m_segr0;
+    cv::Mat_<quint16> m_segr1;
+
     cv::Mat_<quint8> m_edge;
     cv::Mat_<qreal> m_segMap;
 
@@ -80,7 +88,7 @@ private: // private members
 
 
 private: // private functions
-    void CalGroupPar();
+    void CalGroupPar(int N);
     QVector<int> FindPeaks(QVector<qreal> v, int nPeaks);
 
 };

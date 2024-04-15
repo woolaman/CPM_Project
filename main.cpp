@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
         nCM = 20;
         nBK = 5;
         nPixel = 512;
-        nCrystal = 26;
+        nCrystal = 28;
         crystalNum = nCrystal*nCrystal;
 
         enlarge = 1.06;
@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
         ymin = 0;
         ymax = 512;
 
-        EW_width = 0.25;
+        EW_width = 0.30;
 
         segMethod = SegmentMethod::SVD;
 
