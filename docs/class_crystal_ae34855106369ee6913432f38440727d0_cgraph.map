@@ -1,0 +1,11 @@
+<map id="Crystal::CalRecEHist" name="Crystal::CalRecEHist">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,150,108"/>
+<area shape="rect" id="Node000002" href="$class_histogram.html#a42ce9043f91904cc1997c02a05481769" title=" " alt="" coords="226,5,331,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,78,197,42,216,35,218,40,199,46,110,83"/>
+<area shape="rect" id="Node000003" href="$class_histogram.html#a56632cefb356109b25a0ed8ada5724ce" title=" " alt="" coords="209,56,348,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,83,193,77,194,83,150,88"/>
+<area shape="rect" id="Node000004" href="$class_histogram.html#a92a5f3ebdb2c2ff6e91e4273facb2f0f" title=" " alt="" coords="198,107,359,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="150,101,182,105,182,110,149,106"/>
+<area shape="rect" id="Node000005" href="$class_histogram.html#a2a1f370b9d8dddbc0205e7d181ada16e" title=" " alt="" coords="212,157,345,184"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="110,106,199,143,218,150,216,155,197,148,108,111"/>
+</map>

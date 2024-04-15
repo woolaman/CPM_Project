@@ -1,0 +1,28 @@
+var class_histogram =
+[
+    [ "Histogram", "class_histogram.html#af681f293852ac145f867ecfcce3062a5", null ],
+    [ "Histogram", "class_histogram.html#a146a533e6b15613a097afcf24ed07922", null ],
+    [ "~Histogram", "class_histogram.html#aaf22daf3b8e3f0578337109005532f51", null ],
+    [ "Add", "class_histogram.html#a1ed08724ec01eeaa4aaefda028ebf01d", null ],
+    [ "Clear", "class_histogram.html#aa9b6b2cf6f4d9f0778fa3fce12fd557b", null ],
+    [ "Fill", "class_histogram.html#a42ce9043f91904cc1997c02a05481769", null ],
+    [ "GetBinCenter", "class_histogram.html#aaa0b8d77f8c760ad6a4cf67719e3d6f8", null ],
+    [ "GetBinContent", "class_histogram.html#a9f4087047f3214e15009c119af0bc259", null ],
+    [ "GetBinWidth", "class_histogram.html#a6529d27409b0b87da41653c42df790d4", null ],
+    [ "GetLeftValue", "class_histogram.html#afdcf3ed9f291570605561f996435f7cb", null ],
+    [ "GetPeak", "class_histogram.html#a56632cefb356109b25a0ed8ada5724ce", null ],
+    [ "GetResolution", "class_histogram.html#a84f7d8e5fa89814ec2524e72781fdc5b", null ],
+    [ "GetRightValue", "class_histogram.html#adc6850aea09b245c76767dc6c6e30027", null ],
+    [ "SetCutValue", "class_histogram.html#a92a5f3ebdb2c2ff6e91e4273facb2f0f", null ],
+    [ "Smooth", "class_histogram.html#a9ba25d9551b4bc1f2ba5d740857456ba", null ],
+    [ "Smooth", "class_histogram.html#a2a1f370b9d8dddbc0205e7d181ada16e", null ],
+    [ "m_binCenters", "class_histogram.html#a2ce972913367c3d01545a04a198d55c8", null ],
+    [ "m_binContents", "class_histogram.html#a8b212c0031ae2b079173c22a00d175df", null ],
+    [ "m_binWidth", "class_histogram.html#a0cd493e25a8f58f41c1a6b8b51a9b17a", null ],
+    [ "m_cutValue", "class_histogram.html#a568a78f02c7fdd2bc8d60b565e096e62", null ],
+    [ "m_leftValue", "class_histogram.html#a12530c0a164e04898814dee4319e9b0f", null ],
+    [ "m_nBins", "class_histogram.html#afa4704302db8a7ff6b91c5c8a5bf2b56", null ],
+    [ "m_rightValue", "class_histogram.html#a3a23808691e942ee6bec8d7dedd0d123", null ],
+    [ "m_xmax", "class_histogram.html#a9cc9a8c39b6b38713646f1f8129277f3", null ],
+    [ "m_xmin", "class_histogram.html#a4c3cf1aab2fff21af40063e2d1b9327b", null ]
+];

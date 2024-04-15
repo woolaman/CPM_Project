@@ -1,0 +1,7 @@
+<map id="Readin::StartReadBin" name="Readin::StartReadBin">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,152,57"/>
+<area shape="rect" id="Node000002" href="$class_readin.html#a179c56a9aa97ad533bbe9ff3b10134c1" title=" " alt="" coords="200,5,332,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,31,184,27,185,32,153,37"/>
+<area shape="rect" id="Node000003" href="$class_readin.html#a1170fb37efffc4762a9387c14250916f" title=" " alt="" coords="209,56,323,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,51,194,57,193,62,152,57"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="MainWindow::on_pushButton_calSegFOM_clicked" name="MainWindow::on_pushButton_calSegFOM_clicked">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,196,91"/>
+<area shape="rect" id="Node000002" href="$class_block.html#aafd98384ce8d8bf1ed28bb9dbddbc887" title=" " alt="" coords="244,5,377,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,45,237,34,238,39,192,50"/>
+<area shape="rect" id="Node000004" href="$class_block.html#a608b8bc000abff81abf8cef02f967330" title=" " alt="" coords="248,56,373,83"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,67,233,67,233,72,196,72"/>
+<area shape="rect" id="Node000005" href="$class_block.html#ac29c0d95861070943bd3043689eed65d" title=" " alt="" coords="255,107,366,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="192,89,241,101,240,106,191,94"/>
+<area shape="rect" id="Node000003" href="$class_block.html#a1e636ec281853daf62d302eb122d0bd6" title=" " alt="" coords="425,5,547,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="378,16,409,16,409,21,378,21"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="Histogram::Clear" name="Histogram::Clear">
+<area shape="rect" id="Node000001" title=" " alt="" coords="392,39,510,65"/>
+<area shape="rect" id="Node000002" href="$class_block.html#a2b1888b3691183948da6a2b0807d45df" title=" " alt="" coords="248,13,340,40"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="376,43,340,37,341,31,377,37"/>
+<area shape="rect" id="Node000004" href="$class_crystal.html#a5f756fd1ad94097f89f1c2437e1422af" title=" " alt="" coords="244,64,344,91"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="377,67,345,72,344,67,376,61"/>
+<area shape="rect" id="Node000003" href="$class_main_window.html#a0b676a6756fba68772d94b939fcfba07" title=" " alt="" coords="5,5,196,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="232,29,196,29,196,24,232,24"/>
+</map>

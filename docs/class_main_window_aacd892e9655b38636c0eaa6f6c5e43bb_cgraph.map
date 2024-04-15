@@ -1,0 +1,15 @@
+<map id="MainWindow::on_pushButton_calPeaks_clicked" name="MainWindow::on_pushButton_calPeaks_clicked">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,99,196,141"/>
+<area shape="rect" id="Node000002" href="$class_main_window.html#ae531143c14b8e1d97b08886804534329" title=" " alt="" coords="244,107,429,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,117,228,117,228,123,196,123"/>
+<area shape="rect" id="Node000003" href="$class_crystal.html#a34e9454fb918c436c313276bed491fd0" title=" " alt="" coords="493,5,634,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="358,104,411,73,476,42,494,35,496,40,478,46,413,78,361,108"/>
+<area shape="rect" id="Node000004" href="$class_histogram.html#aaa0b8d77f8c760ad6a4cf67719e3d6f8" title=" " alt="" coords="481,56,647,83"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="399,103,485,84,486,89,400,109"/>
+<area shape="rect" id="Node000005" href="$class_histogram.html#a9f4087047f3214e15009c119af0bc259" title=" " alt="" coords="477,107,650,133"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="429,117,461,117,461,123,429,123"/>
+<area shape="rect" id="Node000006" href="$class_block.html#af7d9113b561a9c797cb93213ddadccdd" title=" " alt="" coords="502,157,626,184"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="400,131,487,151,486,156,399,137"/>
+<area shape="rect" id="Node000007" href="$class_histogram.html#a56632cefb356109b25a0ed8ada5724ce" title=" " alt="" coords="494,208,633,235"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="361,132,413,162,478,194,496,200,494,205,476,198,411,167,358,136"/>
+</map>

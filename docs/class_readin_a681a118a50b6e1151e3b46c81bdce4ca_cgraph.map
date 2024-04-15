@@ -1,0 +1,7 @@
+<map id="Readin::StartReadTxt" name="Readin::StartReadTxt">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,151,57"/>
+<area shape="rect" id="Node000002" href="$class_readin.html#a179c56a9aa97ad533bbe9ff3b10134c1" title=" " alt="" coords="199,5,331,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,31,183,27,184,32,151,37"/>
+<area shape="rect" id="Node000003" href="$class_readin.html#a1170fb37efffc4762a9387c14250916f" title=" " alt="" coords="208,56,322,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,51,193,57,192,62,151,57"/>
+</map>

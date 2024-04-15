@@ -1,0 +1,10 @@
+<map id="Histogram::GetResolution" name="Histogram::GetResolution">
+<area shape="rect" id="Node000001" title=" " alt="" coords="406,31,576,57"/>
+<area shape="rect" id="Node000002" href="$class_block.html#aae254bdf2091f67ce37e3fcb5537dffc" title=" " alt="" coords="253,5,354,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="390,33,354,28,355,23,391,28"/>
+<area shape="rect" id="Node000004" href="$class_crystal.html#a68a2a8a3fab1a8a803788a68f54f6f2a" title=" " alt="" coords="249,56,358,83"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="391,60,359,65,358,59,390,55"/>
+<area shape="rect" id="Node000003" href="$class_main_window.html#a5dd106a25bc30a02946baf818b4db92c" title=" " alt="" coords="5,23,201,65"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="237,30,202,34,201,29,237,24"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="233,63,201,59,202,54,234,58"/>
+</map>

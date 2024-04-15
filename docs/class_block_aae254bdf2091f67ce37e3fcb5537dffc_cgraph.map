@@ -1,0 +1,9 @@
+<map id="Block::GetER" name="Block::GetER">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,56,107,83"/>
+<area shape="rect" id="Node000002" href="$class_histogram.html#a84f7d8e5fa89814ec2524e72781fdc5b" title=" " alt="" coords="155,5,325,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,53,173,34,175,39,108,58"/>
+<area shape="rect" id="Node000003" href="$class_histogram.html#a92a5f3ebdb2c2ff6e91e4273facb2f0f" title=" " alt="" coords="159,56,321,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="107,67,144,67,144,72,107,72"/>
+<area shape="rect" id="Node000004" href="$class_histogram.html#a2a1f370b9d8dddbc0205e7d181ada16e" title=" " alt="" coords="173,107,307,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="108,81,175,99,173,105,107,86"/>
+</map>

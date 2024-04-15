@@ -1,0 +1,11 @@
+<map id="MainWindow::on_pushButton_crystalES_clicked" name="MainWindow::on_pushButton_crystalES_clicked">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,196,91"/>
+<area shape="rect" id="Node000002" href="$class_main_window.html#a0707b5deacdd3f4343b70c9cd983a06c" title=" " alt="" coords="244,56,434,83"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,67,228,67,228,72,196,72"/>
+<area shape="rect" id="Node000003" href="$class_histogram.html#aaa0b8d77f8c760ad6a4cf67719e3d6f8" title=" " alt="" coords="482,5,648,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="401,53,487,33,488,39,402,58"/>
+<area shape="rect" id="Node000004" href="$class_block.html#af7d9113b561a9c797cb93213ddadccdd" title=" " alt="" coords="503,56,627,83"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="434,67,488,67,488,72,434,72"/>
+<area shape="rect" id="Node000005" href="$class_crystal.html#a7ddc23098fdf84a65514a774ceec1c69" title=" " alt="" coords="492,107,638,133"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="402,81,488,100,487,105,401,86"/>
+</map>

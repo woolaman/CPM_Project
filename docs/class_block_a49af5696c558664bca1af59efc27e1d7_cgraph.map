@@ -1,0 +1,9 @@
+<map id="Block::Segment" name="Block::Segment">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,120,57"/>
+<area shape="rect" id="Node000002" href="$class_block.html#a629be28aa69993cbc0bd68ba197e0389" title=" " alt="" coords="168,5,289,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,33,152,28,153,33,120,38"/>
+<area shape="rect" id="Node000004" href="$class_block.html#a96a07d97c637f6496d56d54de8cb5f6b" title=" " alt="" coords="168,56,289,83"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="120,50,153,55,152,60,120,55"/>
+<area shape="rect" id="Node000003" href="$class_block.html#ab764d3f09764f639b8ba76ab630e7fa9" title=" " alt="" coords="337,5,461,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="289,16,322,16,322,21,289,21"/>
+</map>

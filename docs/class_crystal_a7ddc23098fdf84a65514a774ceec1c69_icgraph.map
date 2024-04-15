@@ -1,0 +1,9 @@
+<map id="Crystal::GetRecEHist" name="Crystal::GetRecEHist">
+<area shape="rect" id="Node000001" title=" " alt="" coords="491,47,637,73"/>
+<area shape="rect" id="Node000002" href="$class_main_window.html#a0707b5deacdd3f4343b70c9cd983a06c" title=" " alt="" coords="253,47,443,73"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="475,63,443,63,443,57,475,57"/>
+<area shape="rect" id="Node000003" href="$class_main_window.html#adea69208af4863571f0e3802c2d2628e" title=" " alt="" coords="5,5,205,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="237,47,205,43,205,38,238,42"/>
+<area shape="rect" id="Node000004" href="$class_main_window.html#a0afd41740d9297a1152fd175c4a3e8dc" title=" " alt="" coords="10,72,200,115"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="238,78,201,83,200,78,237,72"/>
+</map>

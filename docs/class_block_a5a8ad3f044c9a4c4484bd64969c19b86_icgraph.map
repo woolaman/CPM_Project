@@ -1,0 +1,9 @@
+<map id="Block::GetMap" name="Block::GetMap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="244,80,352,107"/>
+<area shape="rect" id="Node000002" href="$class_main_window.html#a6ad42a532d37726cbe93b76f6c357198" title=" " alt="" coords="5,5,196,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,77,165,51,167,46,242,72"/>
+<area shape="rect" id="Node000003" href="$class_main_window.html#a90648b46a67de3ba938a27ac71cc1357" title=" " alt="" coords="5,72,196,115"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,96,196,96,196,91,228,91"/>
+<area shape="rect" id="Node000004" href="$class_main_window.html#a0b676a6756fba68772d94b939fcfba07" title=" " alt="" coords="5,139,196,181"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="242,115,167,141,165,136,240,110"/>
+</map>

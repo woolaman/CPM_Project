@@ -1,0 +1,9 @@
+<map id="MainWindow::ShowADCHist" name="MainWindow::ShowADCHist">
+<area shape="rect" id="Node000001" title=" " alt="" coords="253,80,438,107"/>
+<area shape="rect" id="Node000002" href="$class_main_window.html#a6ad42a532d37726cbe93b76f6c357198" title=" " alt="" coords="10,5,200,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="279,78,184,51,185,46,280,73"/>
+<area shape="rect" id="Node000003" href="$class_main_window.html#adea69208af4863571f0e3802c2d2628e" title=" " alt="" coords="5,72,205,115"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,96,205,96,205,91,237,91"/>
+<area shape="rect" id="Node000004" href="$class_main_window.html#aacd892e9655b38636c0eaa6f6c5e43bb" title=" " alt="" coords="10,139,200,181"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="280,114,185,141,184,135,279,109"/>
+</map>
