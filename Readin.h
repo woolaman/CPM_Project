@@ -5,7 +5,6 @@
 #include <QString>
 #include <QVector>
 
-
 class Readin: public QObject
 {
     Q_OBJECT
@@ -17,16 +16,13 @@ public:
 
     QVector< QVector<quint16> > GetData();
 
-
 public slots:
     void StartReadTxt(); // readin text file
     void StartReadBin(); // readin binary file
 
-
 signals:
     void currentPos(int pos);
     void finished();
-
 
 private:
     QString m_fileName;

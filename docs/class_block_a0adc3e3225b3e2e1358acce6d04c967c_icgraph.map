@@ -1,7 +1,0 @@
-<map id="Block::CalGroupPar" name="Block::CalGroupPar">
-<area shape="rect" id="Node000001" title=" " alt="" coords="149,31,285,57"/>
-<area shape="rect" id="Node000002" href="$class_block.html#a37658a946bf5067ad01d68d9ff086adc" title=" " alt="" coords="5,5,101,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,34,101,29,101,23,133,28"/>
-<area shape="rect" id="Node000003" href="$class_block.html#aa7b83221852a8686d0c5d211b231b15b" title=" " alt="" coords="5,56,101,83"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,60,101,65,101,59,133,54"/>
-</map>

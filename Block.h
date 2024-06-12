@@ -1,11 +1,17 @@
-﻿#ifndef BLOCK_H
+﻿/**
+ * @class Block
+ *
+ * block class
+ *
+*/
+
+#ifndef BLOCK_H
 #define BLOCK_H
 
 #include "Crystal.h"
 #include "Parameters.h"
 
 #include <opencv2/core.hpp>
-
 
 class Block
 {
@@ -52,6 +58,8 @@ public:
 
     void Clear();
 
+    cv::Mat_<qreal> GetUniformity();
+    QVector<qreal> GetUStatistics();
 
 private: // private members
     int m_ID;
@@ -86,6 +94,11 @@ private: // private members
     qreal m_PVR;
     qreal m_FWHM;
 
+    cv::Mat_<qreal> m_uniformity;
+    qreal m_uMin;
+    qreal m_uMax;
+    qreal m_uMean;
+    qreal m_uSD; // Standard deviation
 
 private: // private functions
     void CalGroupPar(int N);

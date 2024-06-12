@@ -1,7 +1,0 @@
-<map id="Crystal::GetER" name="Crystal::GetER">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,115,57"/>
-<area shape="rect" id="Node000002" href="$class_histogram.html#a84f7d8e5fa89814ec2524e72781fdc5b" title=" " alt="" coords="163,5,333,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,34,147,30,147,35,115,39"/>
-<area shape="rect" id="Node000003" href="$class_histogram.html#a2a1f370b9d8dddbc0205e7d181ada16e" title=" " alt="" coords="181,56,315,83"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="115,49,166,56,165,61,115,54"/>
-</map>

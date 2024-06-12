@@ -1,4 +1,10 @@
-﻿#ifndef CRYSTAL_H
+﻿/**
+ * @class Crystal
+ * Crystal class.
+ */
+
+
+#ifndef CRYSTAL_H
 #define CRYSTAL_H
 
 #include <QVector>
@@ -16,6 +22,7 @@ public:
     void SetID(int ID);
 
     int GetEntries();
+    int GetEntries(qreal Emin, qreal Emax);
 
     void Fill(quint16 e);
     void CalRecEHist();

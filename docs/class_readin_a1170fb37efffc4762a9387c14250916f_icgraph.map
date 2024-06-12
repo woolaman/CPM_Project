@@ -1,9 +1,0 @@
-<map id="Readin::finished" name="Readin::finished">
-<area shape="rect" id="Node000001" title=" " alt="" coords="438,31,551,57"/>
-<area shape="rect" id="Node000002" href="$class_readin.html#a535106738caf2f0f50fada50a101648f" title=" " alt="" coords="244,5,390,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="422,36,390,32,391,26,423,31"/>
-<area shape="rect" id="Node000003" href="$class_readin.html#a681a118a50b6e1151e3b46c81bdce4ca" title=" " alt="" coords="244,56,390,83"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="423,57,390,62,389,56,422,52"/>
-<area shape="rect" id="Node000004" href="$class_main_window.html#afb8d088198dc4096ee37fa770d7a822f" title=" " alt="" coords="5,48,196,91"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="228,72,196,72,196,67,228,67"/>
-</map>

@@ -1,4 +1,10 @@
-﻿#include "LabelHistogram.h"
+﻿/**
+ * 用于显示能谱的label，继承自QLabel，重新实现了鼠标点击操作。
+ * 左键和左键点击后返回鼠标点击位置。
+*/
+
+
+#include "LabelHistogram.h"
 
 
 LabelHistogram::LabelHistogram(QWidget *parent)

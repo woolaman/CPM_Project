@@ -4,21 +4,18 @@
 #include <QTextStream>
 #include <QDebug>
 #include <QDataStream>
+#include <QString>
 
 #include "Parameters.h"
 
-
 Readin::Readin() {}
-
 
 Readin::Readin(QString fName)
 {
     m_fileName = fName;
 }
 
-
 Readin::~Readin() {}
-
 
 void Readin::StartReadTxt()
 {
@@ -44,7 +41,7 @@ void Readin::StartReadTxt()
     while (!in.atEnd())
     {
         QString line = in.readLine();
-        QStringList numbers = line.split(" ", Qt::SkipEmptyParts);
+		QStringList numbers = line.split(" ", QString::SkipEmptyParts);
 
         if(3==numbers.size())
         {
@@ -69,7 +66,6 @@ void Readin::StartReadTxt()
 
     emit finished();
 }
-
 
 void Readin::StartReadBin()
 {
@@ -156,9 +152,7 @@ void Readin::StartReadBin()
     emit finished();
 }
 
-
 QVector< QVector<quint16> > Readin::GetData()
 {
     return m_data;
 }
-

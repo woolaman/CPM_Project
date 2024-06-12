@@ -1,7 +1,0 @@
-<map id="Block::CalFWHM" name="Block::CalFWHM">
-<area shape="rect" id="Node000001" title=" " alt="" coords="425,13,547,40"/>
-<area shape="rect" id="Node000002" href="$class_block.html#aafd98384ce8d8bf1ed28bb9dbddbc887" title=" " alt="" coords="244,13,377,40"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="409,29,378,29,378,24,409,24"/>
-<area shape="rect" id="Node000003" href="$class_main_window.html#a33deb2ec681ce0b46c9d6c2832d6e16d" title=" " alt="" coords="5,5,196,48"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="228,29,196,29,196,24,228,24"/>
-</map>

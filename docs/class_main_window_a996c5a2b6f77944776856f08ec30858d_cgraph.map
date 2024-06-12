@@ -1,7 +1,0 @@
-<map id="MainWindow::MainWindow" name="MainWindow::MainWindow">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,183,32"/>
-<area shape="rect" id="Node000002" href="$class_main_window.html#ad17c01b18e1af5b509aad0916bd23885" title=" " alt="" coords="231,5,401,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,16,215,16,215,21,183,21"/>
-<area shape="rect" id="Node000003" href="$class_main_window.html#a1dc1a08608a2e274931156690e930e80" title=" " alt="" coords="449,5,628,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="402,16,434,16,434,21,402,21"/>
-</map>

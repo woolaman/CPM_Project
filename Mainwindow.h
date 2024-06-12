@@ -14,11 +14,9 @@
 #include "Readin.h"
 #include "Block.h"
 
-
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
-
 
 class MainWindow : public QMainWindow
 {
@@ -33,7 +31,6 @@ public:
     void ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt);
     void ShowADCHist(int peakLoc=-1);
     void ShowRecEHist();
-
 
 private slots:
     void on_pushButton_readinData_clicked();
@@ -64,6 +61,7 @@ private slots:
 
     void on_pushButton_crystalES_clicked();
 
+    void on_pushButton_report_clicked();
 
 private:
     Ui::MainWindow* ui;
@@ -82,6 +80,7 @@ private:
     QtCharts::QChart*      chart;
     QtCharts::QChartView*  chartView;
 
+    qreal m_peakLoc = 0;
     qreal m_peakValue = 0;
     //oooooooOOOOOOOOOoooooooooooo
 

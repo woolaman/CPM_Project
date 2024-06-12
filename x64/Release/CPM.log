@@ -1,0 +1,28 @@
+﻿  uic mainwindow.ui
+  uic ParameterForm.ui
+  rcc CPM.qrc
+  moc Readin.h
+   RCC: Warning: No resources in 'D:\NovelMedical\CPM\CPM\CPM.qrc'.
+  moc ParameterForm.h
+  moc MainWindow.h
+  moc LabelHistogram.h
+  moc LabelFloodmap.h
+  MainWindow.cpp
+  Module.cpp
+  ParameterForm.cpp
+  PETRing.cpp
+  Readin.cpp
+  Block.cpp
+  Crystal.cpp
+  Histogram.cpp
+  LabelFloodmap.cpp
+  LabelHistogram.cpp
+  main.cpp
+  qrc_CPM.cpp
+  moc_Readin.cpp
+  moc_ParameterForm.cpp
+  moc_MainWindow.cpp
+  moc_LabelHistogram.cpp
+  moc_LabelFloodmap.cpp
+LINK : warning LNK4098: 默认库“LIBCMT”与其他库的使用冲突；请使用 /NODEFAULTLIB:library
+  CPM.vcxproj -> D:\NovelMedical\CPM\Build\CPM.exe

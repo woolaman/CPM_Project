@@ -241,45 +241,45 @@ void ParameterForm::closeEvent(QCloseEvent *event)
     {
         QTextStream out(&file);
 
-        out << "# Parameter setup file \n" << Qt::endl;
+        out << "# Parameter setup file \n" << "\n";
 
         out << "nCM = " + QString::number(nCM) + "\n";
         out << "nBK = " + QString::number(nBK) + "\n";
         out << "nCrystal = " + QString::number(nCrystal) + "\n";
-        out << "nPixel = " + QString::number(nPixel) + "\n" << Qt::endl;
+        out << "nPixel = " + QString::number(nPixel) + "\n" << "\n";
 
         out << "enlarge = " + QString::number(enlarge, 'f', 2) + "\n";
-        out << "bias = " + QString::number(bias) + "\n" << Qt::endl;
+        out << "bias = " + QString::number(bias) + "\n" << "\n";
 
         out << "xmin = " + QString::number(xmin) + "\n";
         out << "xmax = " + QString::number(xmax) + "\n";
         out << "ymin = " + QString::number(ymin) + "\n";
-        out << "ymax = " + QString::number(ymax) + "\n" << Qt::endl;
+        out << "ymax = " + QString::number(ymax) + "\n" << "\n";
 
         out << "EW_width = " + QString::number(EW_width, 'f', 2)
-                   + "\n" << Qt::endl;
+                   + "\n" << "\n";
 
         out << "segmentMethod = " +
                    QString::number(static_cast<int>(segMethod))
-                   + "\n" << Qt::endl;
+                   + "\n" << "\n";
 
-        out << "peakE = " + QString::number(peakE, 'f', 2)  + "\n" << Qt::endl;
+        out << "peakE = " + QString::number(peakE, 'f', 2)  + "\n" << "\n";
 
         out << "ADC_min = " + QString::number(ADC_min)  + "\n";
         out << "ADC_max = " + QString::number(ADC_max)  + "\n";
         out << "ADC_nBins = " + QString::number(ADC_nBins)  + "\n";
         out << "ADC_cutValue = " + QString::number(ADC_cutValue)
-                   + "\n" << Qt::endl;
+                   + "\n" << "\n";
 
         out << "recE_min = " + QString::number(recE_min)  + "\n";
         out << "recE_max = " + QString::number(recE_max)  + "\n";
         out << "recE_nBins = " + QString::number(recE_nBins)  + "\n";
         out << "recE_cutValue = " + QString::number(recE_cutValue)
-                   + "\n" << Qt::endl;
+                   + "\n" << "\n";
 
         out << "Position LUT = " + fName_LUT_P + "\n";
         out << "Energy LUT = " + fName_LUT_E + "\n";
-        out << "Uniformity LUT = " + fName_LUT_U + "\n" << Qt::endl;
+        out << "Uniformity LUT = " + fName_LUT_U + "\n" << "\n";
     }
     else
     {

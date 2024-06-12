@@ -1,4 +1,11 @@
-﻿#include "LabelFloodmap.h"
+﻿/**
+ * 用于显示floodmap等图像的label，继承自QLabel，重新实现了一些鼠标操作。
+ * 左右键点击返回鼠标位置。
+ * 鼠标在窗口中滑过时显示鼠标位置。
+*/
+
+
+#include "LabelFloodmap.h"
 
 #include <QCursor>
 

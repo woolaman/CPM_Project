@@ -1,4 +1,10 @@
-﻿#include "Histogram.h"
+﻿/**
+ * @details 直方图类。直方图类实现了平滑、寻峰、计算半高宽、计算分辨率等基础操作。
+ * crystal、block等对象调用直方图类可以计算自己的参数，使得代码更加整洁清晰。
+*/
+
+
+#include "Histogram.h"
 
 #include "opencv2/core/mat.hpp"
 #include "opencv2/imgproc.hpp"
@@ -172,5 +178,22 @@ void Histogram::Clear()
     {
         var = 0;
     }
+}
+
+
+void Histogram::SetBinContent(int iBin, qreal value)
+{
+    m_binContents[iBin] = value;
+}
+
+
+Histogram* Histogram::Clone()
+{
+    Histogram* h = new Histogram(m_xmin, m_xmax, m_nBins);
+    for (int iBin = 0; iBin < m_nBins; ++iBin)
+    {
+        h->SetBinContent(iBin, m_binContents[iBin]);
+    }
+    return h;
 }
 

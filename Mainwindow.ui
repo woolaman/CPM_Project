@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1000</width>
-    <height>848</height>
+    <height>888</height>
    </rect>
   </property>
   <property name="font">
@@ -713,7 +713,7 @@
       <x>30</x>
       <y>680</y>
       <width>132</width>
-      <height>60</height>
+      <height>48</height>
      </rect>
     </property>
     <property name="font">
@@ -729,10 +729,10 @@
    <widget class="QPushButton" name="pushButton_calUniformity">
     <property name="geometry">
      <rect>
-      <x>179</x>
-      <y>680</y>
-      <width>250</width>
-      <height>60</height>
+      <x>30</x>
+      <y>740</y>
+      <width>148</width>
+      <height>48</height>
      </rect>
     </property>
     <property name="font">
@@ -748,9 +748,9 @@
    <widget class="QPushButton" name="pushButton_crystalES">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>760</y>
-      <width>400</width>
+      <x>180</x>
+      <y>680</y>
+      <width>251</width>
       <height>48</height>
      </rect>
     </property>
@@ -762,6 +762,63 @@
     </property>
     <property name="text">
      <string>单根晶体能谱</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_report">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>800</y>
+      <width>401</width>
+      <height>48</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>生成质控报告</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_stdDev">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>740</y>
+      <width>131</width>
+      <height>48</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_stdDev">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>740</y>
+      <width>53</width>
+      <height>48</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>标准差</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
   </widget>

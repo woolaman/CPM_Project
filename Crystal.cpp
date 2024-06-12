@@ -47,24 +47,45 @@ int Crystal::GetEntries()
 }
 
 
+/**
+ * @brief 计算能窗范围内的事例数。
+ */
+int Crystal::GetEntries(qreal Emin, qreal Emax)
+{
+    int counter = 0;
+    for (int i = 0; i < m_eList.size(); ++i)
+    {
+        qreal recE = m_slope * m_eList[i];
+        if(Emin<recE && recE<Emax)
+        {
+            counter++;
+        }
+    }
+    return counter;
+}
+
+
 void Crystal::Fill(quint16 e)
 {
     m_eList.append(e);
     m_ADCHist->Fill(e);
 }
 
-
+/**
+ * @brief 晶体校正能谱过程。对ADC谱进行平滑、寻峰，计算ADC->keV转换系数，然后计算keV能谱
+ */
 void Crystal::CalRecEHist()
 {
-    m_ADCHist->SetCutValue(ADC_cutValue);
+    auto h = m_ADCHist->Clone();
+    h->SetCutValue(ADC_cutValue);
+    h->Smooth(10, 2);
 
-    m_ADCHist->Smooth(10, 2);
-
-    qreal peakLoc = m_ADCHist->GetPeak().x();
+    qreal peakLoc = h->GetPeak().x();
     m_slope = peakE/peakLoc;
-    for (auto var : m_eList)
+
+    for (int i = 0; i < m_eList.size(); ++i)
     {
-        m_recEHist->Fill(m_slope * var);
+        m_recEHist->Fill(m_slope * m_eList[i]);
     }
 }
 
@@ -96,8 +117,9 @@ void Crystal::SetSlope(qreal x)
 
 qreal Crystal::GetER()
 {
-    m_recEHist->Smooth();
-    return m_recEHist->GetResolution();
+    auto h = m_recEHist->Clone();
+    h->Smooth();
+    return h->GetResolution();
 }
 
 

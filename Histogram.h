@@ -1,4 +1,11 @@
-﻿#ifndef HISTOGRAM_H
+﻿/**
+ * @class Histogram class
+ *
+ * 基础工具类，直方图类。
+ *
+*/
+
+#ifndef HISTOGRAM_H
 #define HISTOGRAM_H
 
 #include <QPointF>
@@ -18,6 +25,8 @@ public:
     qreal GetBinCenter(int iBin);
     qreal GetBinContent(int iBin);
 
+    void SetBinContent(int iBin, qreal value);
+
     void Smooth(int windowSize=10);
     void Smooth(int windowSize, int times);
 
@@ -31,6 +40,8 @@ public:
     qreal GetRightValue();
 
     void Clear();
+
+    Histogram* Clone();
 
 
 private:

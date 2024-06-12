@@ -14,7 +14,6 @@
 
 #include "Parameters.h"
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -96,12 +95,10 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << QString::fromLocal8Bit("初始化结束。");
 }
 
-
 MainWindow::~MainWindow()
 {
     qDebug() << QString::fromLocal8Bit("程序关闭。");
 }
-
 
 // 一些功能性函数
 cv::Mat MainWindow::GetColorMap(cv::Mat_<qreal> I)
@@ -126,12 +123,14 @@ cv::Mat MainWindow::GetColorMap(cv::Mat_<qreal> I)
     return colorMap;
 }
 
-
 void MainWindow::ShowImage(cv::Mat_<qreal> I)
 {
     cv::Mat colorMap = GetColorMap(I);
-    QImage qtImage(colorMap.data, colorMap.cols, colorMap.rows,
-                   colorMap.step, QImage::Format_BGR888);
+    //QImage qtImage(colorMap.data, colorMap.cols, colorMap.rows,
+    //               colorMap.step, QImage::Format_BGR888);
+	QImage qtImage(colorMap.data, colorMap.cols, colorMap.rows,
+		colorMap.step, QImage::Format_RGB888);
+	qtImage = qtImage.rgbSwapped();
 
     if(qtImage.width()<nPixel || qtImage.height()<nPixel)
     {
@@ -146,12 +145,15 @@ void MainWindow::ShowImage(cv::Mat_<qreal> I)
     }
 }
 
-
 void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
 {
     cv::Mat colorMap = GetColorMap(I);
-    QImage qtImage(colorMap.data, colorMap.cols, colorMap.rows,
-                   colorMap.step, QImage::Format_BGR888);
+    //QImage qtImage(colorMap.data, colorMap.cols, colorMap.rows,
+    //               colorMap.step, QImage::Format_BGR888);
+	QImage qtImage(colorMap.data, colorMap.cols, colorMap.rows,
+		colorMap.step, QImage::Format_RGB888);
+	qtImage = qtImage.rgbSwapped();
+
     QPixmap pixmap = QPixmap::fromImage(qtImage);
 
     QPainter painter(&pixmap);
@@ -176,7 +178,6 @@ void MainWindow::ShowPeaks(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt)
     ui->label_floodmap->setPixmap(pixmap);
 }
 
-
 void MainWindow::on_pushButton_readinData_clicked()
 {
     qDebug() << "Readin data start ...";
@@ -199,6 +200,7 @@ void MainWindow::on_pushButton_readinData_clicked()
 
     // 连接线程的启动信号到 Worker 对象的工作槽
     QObject::connect(thread, &QThread::started, dataObject, &Readin::StartReadTxt);
+	//QObject::connect(thread, &QThread::started, dataObject, &Readin::StartReadBin);
 
     QObject::connect(dataObject, SIGNAL(currentPos(int)),
                      this, SLOT(UpdateProgressBar(int)));
@@ -212,7 +214,6 @@ void MainWindow::on_pushButton_readinData_clicked()
     // 启动新线程
     thread->start();
 }
-
 
 void MainWindow::on_pushButton_setEW_clicked()
 {
@@ -252,7 +253,7 @@ void MainWindow::on_pushButton_setEW_clicked()
     }
 
     qDebug() << "Draw total ADC histogram in label";
-    Histogram* ADCHist = m_BK->GetADCHist();
+    Histogram* ADCHist = m_BK->GetADCHist()->Clone();
     ADCHist->Smooth();
 
     QVector<QPointF> points;
@@ -266,14 +267,14 @@ void MainWindow::on_pushButton_setEW_clicked()
     qDebug() << "find peak, then draw peak line.";
     ADCHist->SetCutValue(ADC_cutValue);
     QPointF peak = ADCHist->GetPeak();
-    qreal peak_x = peak.x();
+    m_peakLoc = peak.x();
     m_peakValue = peak.y();
 
     eHistLine->replace(points);
 
     qDebug() << "setup energy window.";
-    int minEW = qRound(peak_x*(1-EW_width));
-    int maxEW = qRound(peak_x*(1+EW_width));
+    int minEW = qRound(m_peakLoc*(1-EW_width));
+    int maxEW = qRound(m_peakLoc*(1+EW_width));
 
     axisX->setRange(0, ADC_max);
     axisY->setRange(0, qRound(m_peakValue*1.1));
@@ -297,8 +298,10 @@ void MainWindow::on_pushButton_setEW_clicked()
     ShowImage(m_BK->GetMap());
     ui->label_floodmap->setMouseTracking(true);
     qDebug() << "Generate I0. ";
-}
 
+    // save floodmap to file
+    // magic here!
+}
 
 void MainWindow::on_pushButton_segment_clicked()
 {
@@ -309,7 +312,6 @@ void MainWindow::on_pushButton_segment_clicked()
     ui->label_floodmap->setMouseTracking(false);
 }
 
-
 // 此函数生成整机可用的位置查找表，即将各个BK的分割结果汇总起来变成一个文件
 void MainWindow::on_pushButton_genPositionLUT_clicked()
 {
@@ -317,14 +319,12 @@ void MainWindow::on_pushButton_genPositionLUT_clicked()
     QMessageBox::information(this, "Position LUT", "Position LUT is saved to disk.");
 }
 
-
 void MainWindow::on_pushButton_genEnergyLUT_clicked()
 {
     m_BK->CalRecEHist();
     m_BK->GenEnergyLUT();
     QMessageBox::information(this, "Energy LUT", "Energy LUT is saved to disk.");
 }
-
 
 void MainWindow::on_pushButton_calPeaks_clicked()
 {
@@ -340,7 +340,6 @@ void MainWindow::on_pushButton_calPeaks_clicked()
 
     ShowADCHist();
 }
-
 
 void MainWindow::ShowADCHist(int peakLoc)
 {
@@ -374,7 +373,6 @@ void MainWindow::ShowADCHist(int peakLoc)
     QPixmap pixmap = chartView->grab();
     ui->label_floodmap->setPixmap(pixmap);
 }
-
 
 void MainWindow::on_pushButton_calOnePeak_clicked()
 {
@@ -413,7 +411,6 @@ void MainWindow::on_pushButton_calOnePeak_clicked()
     ui->label_floodmap->setPixmap(pixmap);
 }
 
-
 void MainWindow::on_label_eHist_mouseLeftClicked()
 {
     // 将点击位置从窗口坐标系转换到图表坐标系
@@ -430,7 +427,6 @@ void MainWindow::on_label_eHist_mouseLeftClicked()
     ui->lineEdit_minEW->setText(QString::number(minEW));
 }
 
-
 void MainWindow::on_label_eHist_mouseRightClicked()
 {
     // 将点击位置从窗口坐标系转换到图表坐标系
@@ -446,7 +442,6 @@ void MainWindow::on_label_eHist_mouseRightClicked()
 
     ui->lineEdit_maxEW->setText(QString::number(maxEW));
 }
-
 
 void MainWindow::on_label_floodmap_mouseLeftClicked()
 {
@@ -479,7 +474,6 @@ void MainWindow::on_label_floodmap_mouseLeftClicked()
     }
 }
 
-
 void MainWindow::on_label_floodmap_mouseRightClicked()
 {
     if(0==imgFlag)
@@ -487,8 +481,8 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
         m_BK->CalSegResult();
         ShowImage(m_BK->GetSegMap());
         // 保存分割结果图片
-        const QPixmap *pixmap = ui->label_floodmap->pixmap();
-        QImage image = pixmap->toImage();
+        QPixmap pixmap = *(ui->label_floodmap->pixmap());
+        QImage image = pixmap.toImage();
         QString figName = "./Data/segResult.png";
         if ( image.save(figName) )
         {
@@ -562,7 +556,6 @@ void MainWindow::on_label_floodmap_mouseRightClicked()
     }
 }
 
-
 void MainWindow::on_pushButton_calSegFOM_clicked()
 {
     m_BK->CalSegFOM();
@@ -571,7 +564,6 @@ void MainWindow::on_pushButton_calSegFOM_clicked()
     ui->lineEdit_PVR->setText(QString::number(PVR, 'f', 2));
     ui->lineEdit_FWHM->setText(QString::number(FWHM, 'f', 2));
 }
-
 
 void MainWindow::on_pushButton_writePeaks_clicked()
 {  
@@ -593,13 +585,14 @@ void MainWindow::on_pushButton_writePeaks_clicked()
     qDebug() << "Energy LUT is regenerated: " + fName_LUT_E;
 }
 
-
 void MainWindow::on_pushButton_calEnergyResolution_clicked()
 {
     // 计算单根分辨率
     // 画单根分辨率map 在label_floodmap
     qDebug() << "Calculate single crystal's energy resolution.";
     cv::Mat_<qreal> ERMat(nCrystal, nCrystal);
+    cv::Mat_<qreal> peakLocMat(nCrystal, nCrystal);
+
     for (int iRow = 0; iRow < nCrystal; ++iRow)
     {
         for (int iCol = 0; iCol < nCrystal; ++iCol)
@@ -607,14 +600,26 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
             int id = iRow * nCrystal + iCol;
             qreal aER = m_BK->GetCrystal(id)->GetER();
             ERMat(iRow, iCol) = aER*100;
+
+            qreal slope = m_BK->GetCrystal(id)->GetSlope();
+            peakLocMat(iRow, iCol) = peakE/slope;
         }
     }
 
-    ShowImage(ERMat);
+    // show peak location map
+    //cv::Scalar mean, stdDev;
+    //cv::meanStdDev(peakLocMat, mean, stdDev);
+    //qreal meanVal = mean.val[0];
+    //qreal stdDevVal = stdDev.val[0];
+    //qDebug() << "mean peak location = " << meanVal;
 
-    QPixmap aPixmap = *ui->label_floodmap->pixmap();
-    QPainter aPainter(&aPixmap);
-    aPainter.setPen(QPen(Qt::black, 1));
+    qDebug() << "total ADC histogram peak location = " << m_peakLoc;
+    cv::Mat_<qreal> relativeLoc = peakLocMat/m_peakLoc;
+    ShowImage(relativeLoc);
+
+    QPixmap pixmap0 = *(ui->label_floodmap->pixmap());
+    QPainter painter0(&pixmap0);
+    painter0.setPen(QPen(Qt::black, 1));
 
     int fontSize = 10;
     if(nCrystal<10)
@@ -629,9 +634,31 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
     {
         fontSize = 8;
     }
-    aPainter.setFont(QFont("Arial", fontSize));
+
+    painter0.setFont(QFont("Arial", 6));
 
     qreal width = 1.0*nPixel/nCrystal;
+    for (int iRow = 0; iRow < nCrystal; ++iRow)
+    {
+        for (int iCol = 0; iCol < nCrystal; ++iCol)
+        {
+            QRect rect(iCol*width, iRow*width, width, width);
+            painter0.drawText(rect, Qt::AlignCenter,
+                              QString::number(relativeLoc(iRow, iCol), 'f', 2));
+        }
+    }
+
+    // 保存图片
+    QImage image0 = pixmap0.toImage();
+    image0.save("./Data/peakLoc.png");
+
+    // show energy resolution map
+    ShowImage(ERMat);
+    QPixmap pixmap1 = *(ui->label_floodmap->pixmap());
+    QPainter aPainter(&pixmap1);
+    aPainter.setPen(QPen(Qt::black, 1));
+    aPainter.setFont(QFont("Arial", fontSize));
+
     for (int iRow = 0; iRow < nCrystal; ++iRow)
     {
         for (int iCol = 0; iCol < nCrystal; ++iCol)
@@ -641,7 +668,12 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
             aPainter.drawText(rect, Qt::AlignCenter, QString::number(iER));
         }
     }
-    ui->label_floodmap->setPixmap(aPixmap);
+    ui->label_floodmap->setPixmap(pixmap1);
+
+    // 保存图片
+    QImage image1 = pixmap1.toImage();
+    image1.save("./Data/ER_Mat.png");
+
 
     // 计算总分辨率
     qDebug() << "Calculate the whole block energy resolution.";
@@ -674,66 +706,31 @@ void MainWindow::on_pushButton_calEnergyResolution_clicked()
 
     chartView->resize(ui->label_eHist->size());
 
-    QPixmap pixmap = chartView->grab();
-    QPainter painter(&pixmap);
-    painter.setPen(QPen(Qt::red, 1));
+    QPixmap pixmap2 = chartView->grab();
+    QPainter painter2(&pixmap2);
+    painter2.setPen(QPen(Qt::red, 1));
 
-    painter.setFont(QFont("Arial", 12));
-    painter.drawText(QPoint(300, 100), QString::number(totalER, 'f', 2) + " %");
+    painter2.setFont(QFont("Arial", 12));
+    painter2.drawText(QPoint(300, 100), QString::number(totalER, 'f', 2) + " %");
 
-    ui->label_eHist->setPixmap(pixmap);
+    ui->label_eHist->setPixmap(pixmap2);
     qDebug() << "total energy resolution is " <<
         QString::number(totalER, 'f', 2) + " %.";
 }
 
-
 void MainWindow::on_pushButton_calUniformity_clicked()
 {
-    cv::Mat_<qreal> nEvts = cv::Mat::zeros(nCrystal, nCrystal, CV_64FC1);
+    m_BK->GenUniformityLUT();
+    cv::Mat_<qreal> uMat = m_BK->GetUniformity();
+    QVector<qreal> uStat = m_BK->GetUStatistics(); // max, min, mean, stdDev
+    //qreal uMax = uStat[0];
+    //qreal uMin = uStat[1];
+    //qreal uMean = uStat[2];
+    qreal uSD = uStat[3];
+    ui->lineEdit_stdDev->setText(QString::number(uSD*100, 'f', 2) + " %");
 
-    int totalEvts = 0;
-    for (int iRow = 0; iRow < nCrystal; ++iRow)
-    {
-        for (int iCol = 0; iCol < nCrystal; ++iCol)
-        {
-            int id = iRow*nCrystal + iCol;
-            int N = m_BK->GetCrystal(id)->GetEntries();
-            nEvts(iRow, iCol) = N;
-            totalEvts += N;
-        }
-    }
-
-    ShowImage(nEvts);
-
-    // 获取中心的26x26区域
-    cv::Mat_<qreal> nEvts_center = nEvts(cv::Rect(1, 1, 26, 26));
-    //ShowImage(nEvts_center);
-
-    // 计算最大值和最小值
-    double minVal, maxVal;
-    cv::Point minLoc, maxLoc;
-    cv::minMaxLoc(nEvts_center, &minVal, &maxVal, &minLoc, &maxLoc);
-
-    // 计算平均值和方差
-    cv::Scalar mean, stdDev;
-    cv::meanStdDev(nEvts_center, mean, stdDev);
-    qreal meanVal = mean.val[0];
-    qreal stdDevVal = stdDev.val[0];
-
-    // 输出统计信息
-    qDebug() << "Max value: " << maxVal << ", relative value: " <<
-        QString::number( (maxVal/meanVal-1)*100, 'f', 2 ) << " %";
-    qDebug() << "Min value: " << minVal << ", relative value: " <<
-        QString::number( (1-minVal/meanVal)*100, 'f', 2 ) << " %";
-    qDebug() << "Mean value: " << meanVal;
-    qDebug() << "Standard deviation: " << stdDevVal << ", relative value: " <<
-        QString::number( (stdDevVal/meanVal)*100, 'f', 2 ) << " %";
-
-    //qreal mean_nEvts = 1.0*totalEvts/(crystalNum);
-    //cv::Mat_<qreal> uniformityPar = mean_nEvts/nEvts;
-    cv::Mat_<qreal> uniformityPar = meanVal/nEvts;
-
-    QPixmap aPixmap = *ui->label_floodmap->pixmap();
+    ShowImage(uMat);
+    QPixmap aPixmap = *(ui->label_floodmap->pixmap());
     QPainter aPainter(&aPixmap);
     aPainter.setPen(QPen(Qt::black, 1));
     aPainter.setFont(QFont("Arial", 10));
@@ -742,13 +739,18 @@ void MainWindow::on_pushButton_calUniformity_clicked()
     {
         for (int iCol = 0; iCol < nCrystal; ++iCol)
         {
-            qreal iER = 1.0/uniformityPar(iRow, iCol);
+            qreal iPar = 1.0/uMat(iRow, iCol);
             QRect rect(iCol*width, iRow*width, width, width);
-            aPainter.drawText(rect, Qt::AlignCenter, QString::number(iER, 'f', 1));
+            aPainter.drawText(rect, Qt::AlignCenter, QString::number(iPar, 'f', 1));
         }
     }
     ui->label_floodmap->setPixmap(aPixmap);
 
+    // 保存图片
+    QImage image = aPixmap.toImage();
+    image.save("./Data/Uniformity.png");
+
+    // 保存文件
     QFile outfile(currentPath + fName_LUT_U);
     if ( outfile.open(QIODevice::WriteOnly) )
     {
@@ -758,7 +760,7 @@ void MainWindow::on_pushButton_calUniformity_clicked()
         {
             for (int iCol = 0; iCol < nCrystal; ++iCol)
             {
-                qreal c = uniformityPar(iRow, iCol);
+                qreal c = 1./uMat(iRow, iCol);
                 out << c;
             }
         }
@@ -770,7 +772,6 @@ void MainWindow::on_pushButton_calUniformity_clicked()
     }
 }
 
-
 void MainWindow::on_lineEdit_minEW_editingFinished()
 {
     int minEW = ui->label_minEW->text().toInt();
@@ -780,7 +781,6 @@ void MainWindow::on_lineEdit_minEW_editingFinished()
     QPixmap pixmap = chartView->grab();
     ui->label_eHist->setPixmap(pixmap);
 }
-
 
 void MainWindow::on_lineEdit_maxEW_editingFinished()
 {
@@ -792,12 +792,10 @@ void MainWindow::on_lineEdit_maxEW_editingFinished()
     ui->label_eHist->setPixmap(pixmap);
 }
 
-
 void MainWindow::UpdateProgressBar(int pos)
 {
     ui->progressBar_readinData->setValue(pos);
 }
-
 
 void MainWindow::ReStoreData()
 {
@@ -838,7 +836,6 @@ void MainWindow::ReStoreData()
                              QString::fromLocal8Bit("读入数据完成。"));
 }
 
-
 void MainWindow::on_pushButton_crystalES_clicked()
 {
     imgFlag = 3;
@@ -850,7 +847,6 @@ void MainWindow::on_pushButton_crystalES_clicked()
 
     ShowRecEHist();
 }
-
 
 void MainWindow::ShowRecEHist()
 {
@@ -878,3 +874,21 @@ void MainWindow::ShowRecEHist()
     ui->label_floodmap->setPixmap(pixmap);
 }
 
+void MainWindow::on_pushButton_report_clicked()
+{
+    QString fName = "Report.txt";
+    QFile file(fName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+    {
+        qDebug() << "Fail to open file, please check file: " << fName;
+        return;
+    }
+
+    QTextStream out(&file);
+    out << "CMID = " << ui->lineEdit_CMID->text() << "    ";
+    out << "BKID = " << ui->lineEdit_BKID->text() << "\n";
+    out << "PVR = " << ui->lineEdit_PVR->text() << "    ";
+    out << "FWHM = " << ui->lineEdit_FWHM->text() << "\n";
+
+    file.close();
+}

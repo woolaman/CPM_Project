@@ -1,4 +1,35 @@
-﻿#include <QApplication>
+﻿/**
+ * @mainpage
+ * @brief CPM: crystal position map。
+ *
+ * @author Wang Hongxin
+ * @date 2024 年 4 月
+ *
+ * @details 正电子发射断层成像设备(PET)是一种利用正电子与电子湮灭产生的 γ 射线对
+ * 人体进行断层扫描成像的医学影像设备。探测器模块是PET设备的核心部件，其性能直接影
+ * 响着设备的灵敏度、分辨率、图像质量等关键指标。在组装整机之前，应对探测器模块性
+ * 能做完整测试，保证每个模块性能完全合格再进行组装。在整机设备的声明周期内，我们
+ * 还应该定期对探测器模块做标定和性能检测，以保证设备的成像质量不会变化。基于以上
+ * 需求，本项目开发了一套PET探测器模块质控标定软件。该软件设计目的还包括提供用户友
+ * 好的界面和操作流程，使得PET设备的维护人员能够轻松地进行标定和质控操作。
+ *
+ * 该软件具有以下功能：
+ *
+ * 图像分割：能够对探测器模块的floodmap图像进行分割。
+ *
+ * 位置查找表：能够建立探测器模块的位置查找表，将探测器单元的信号位置映射到图像空间中。
+ *
+ * 能量查找表：能够建立探测器模块的能量查找表，将探测器单元的信号能量映射到图像空间中。
+ *
+ * 能量分辨率：能够计算探测器模块的能量分辨率，评估其能量分辨能力。
+ *
+ * 均匀性：能够查看探测器模块中所有闪烁晶体的均匀性，生成均匀性查找表。
+ *
+ * 本软件使用C++开发，图形框架使用 QT 5.15.2版本，调用开源计算机视觉库OpenCV 4.5.5版
+ * 本，调用GNU开源数学库GSL 2.7版本。
+ */
+
+#include <QApplication>
 #include <QString>
 #include <QDir>
 #include <QMap>
@@ -9,50 +40,55 @@
 #include "Parameters.h"
 #include "ParameterForm.h"
 
+int nCM; /**< CM number */
+int nBK; /**< BK number per CM */
+int nPixel; /**< pixel number of floodmap width/height, default is 512 */
+int nCrystal; /**< crystal number of LYSO array width/height, B4 is 26-28 */
+int crystalNum; /**< total crystal number, equls to nCrystyal * nCrystal */
 
-int nCM;
-int nBK;
-int nPixel;
-int nCrystal;
-int crystalNum;
+qreal enlarge; /**< floodmap enlarge factor */
+int bias; /**< floodmap bias value */
 
-qreal enlarge;
-int bias;
+int xmin; /**< segment area size: x min */
+int xmax; /**< segment area size: x max */
+int ymin; /**< segment area size: y min */
+int ymax; /**< segment area size: y max */
 
-int xmin;
-int xmax;
-int ymin;
-int ymax;
+qreal EW_width; /**< ADC能窗大小，默认30% */
 
-qreal EW_width;
+SegmentMethod segMethod; /**< segment method: 1, SVD method; 2, find maximum method */
 
-SegmentMethod segMethod;
+qreal peakE; /**< ADC峰位对应的真实能量，单位 keV */
 
-qreal peakE;
+int ADC_min; /**< ADC histogram minimum */
+int ADC_max; /**< ADC histogram maximum */
+int ADC_nBins; /**< ADC histogram bin number */
+qreal ADC_binWidth; /**< ADC histogram bin width */
+int ADC_cutValue; /**< ADC histogram cut value to avoid to find wrong peak */
 
-int ADC_min;
-int ADC_max;
-int ADC_nBins;
-qreal ADC_binWidth;
-int ADC_cutValue;
+qreal recE_min; /**< rec energy histogram minimum */
+qreal recE_max; /**< rec nergy histogram maxinum */
+int recE_nBins; /**< rec nergy histogram bin number */
+qreal recE_binWidth; /**< rec nergy histogram bin width */
+qreal recE_cutValue; /**< rec energy histogram cut value to avoid to find wrong peak */
 
-qreal recE_min;
-qreal recE_max;
-int recE_nBins;
-qreal recE_binWidth;
-qreal recE_cutValue;
-
-QString currentPath;
-QString fName_LUT_P;
-QString fName_LUT_E;
-QString fName_LUT_U;
+QString currentPath; /**< current program directory */
+QString fName_LUT_P; /**< position loop up table file name */
+QString fName_LUT_E; /**< energy loop up table file name */
+QString fName_LUT_U; /**< uniformity loop up table file name */
 
 
+/**
+ * @brief myMessageOutput
+ * @param type
+ * @param context
+ * @param msg
+ */
 void myMessageOutput(QtMsgType type,
                      const QMessageLogContext &context,
                      const QString &msg)
 {
-    QByteArray localMsg = msg.toUtf8();
+    QByteArray localMsg = msg.toLocal8Bit();
     const char *file = context.file ? context.file : "";
     const char *function = context.function ? context.function : "";
     switch (type)
@@ -81,6 +117,14 @@ void myMessageOutput(QtMsgType type,
 }
 
 
+/**
+ * @brief main function
+ * @param argc
+ * @param argv
+ * @details 主函数创建data文件夹用来存放数据、过程文件等。
+ * 主函数读入参数配置文件(隐藏文件，用户不可见)，如果没有参数配置文件则赋值默认值。
+ * 然后开打参数配置窗口，让用户在可视化下修改参数。
+ */
 int main(int argc, char *argv[])
 {
     qInstallMessageHandler(myMessageOutput);
@@ -242,6 +286,7 @@ int main(int argc, char *argv[])
         fName_LUT_U = "LUT_Uniformity.bin";
     }
 
+    // create parameters setup window
     ParameterForm* parWindow = new ParameterForm();
     parWindow->setWindowTitle("Parameters Setup Window");
     parWindow->move(50, 50);
