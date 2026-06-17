@@ -4,9 +4,7 @@
  * 基础工具类，直方图类。
  *
 */
-#ifndef HISTOGRAM_H
-#define HISTOGRAM_H
-
+#pragma once
 #include <QPointF>
 #include <QVector>
 
@@ -19,13 +17,14 @@ public:
 
     void Fill(qreal value);
 
-    qreal GetBinWidth();
+    qreal GetBinWidth() const;
     qreal GetBinCenter(int iBin);
     qreal GetBinContent(int iBin);
 
     void SetBinContent(int iBin, qreal value);
 
     QVector<qreal> GetBinContents();
+    void SetBinContents(QVector<qreal> aVec) { m_binContents = aVec; }
 
     void Smooth(int windowSize=5);
     void Smooth(int windowSize, int times);
@@ -36,12 +35,14 @@ public:
 
     QPointF GetPeak();
     qreal GetResolution();
-    qreal GetLeftValue();
-    qreal GetRightValue();
+    qreal GetLeftValue() const;
+    qreal GetRightValue() const;
 
     void Clear();
 
     Histogram* Clone();
+
+    qreal GetMaxHeight();
 
 private:
     int m_nBins;
@@ -57,5 +58,3 @@ private:
     qreal m_leftValue;
     qreal m_rightValue;
 };
-
-#endif // HISTOGRAM_H

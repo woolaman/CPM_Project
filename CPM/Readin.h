@@ -1,9 +1,9 @@
-﻿#ifndef READIN_H
-#define READIN_H
-
+﻿#pragma once
 #include <QObject>
 #include <QString>
 #include <QVector>
+#include <QMutex>
+#include <QMutexLocker>
 
 struct Event
 {
@@ -25,19 +25,17 @@ public:
     void Clear();
 
 public slots:
-    void StartReadTxt(); // readin text file
-    void StartReadBin(); // readin binary file
-    void StartReadBin1(); // 8 bytes per data package
-    void StartReadBin2(); // 16 bytes per data package
-	void StartReadBin3(); // Readin whole PET ring data
+    void StartReadData(); // readin binary file
+    void StartReadTxt(); // readin text file 
+    void StartReadSingleDPB(); // 16 bytes per data package
+	void StartReadWholeRing(); // Readin whole PET ring data
 
 signals:
     void currentPos(int pos);
-    void finished();
+    void ShowMessage(QString title, QString content);
 
 private:
     QString m_fileName;
     QVector< QVector< QVector<Event> > > m_data;
+    mutable QMutex m_mutex;
 };
-
-#endif // READIN_H

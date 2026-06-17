@@ -1,6 +1,4 @@
-﻿#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
-
+﻿#pragma once
 #include <QMainWindow>
 #include <QLineSeries>
 #include <QChart>
@@ -58,7 +56,6 @@ private slots:
     void on_lineEdit_maxEW_editingFinished();
 
     void UpdateProgressBar(int pos);
-    void ReStoreData();
 
     void on_pushButton_crystalES_clicked();
 
@@ -66,9 +63,13 @@ private slots:
 
 	void on_FloodmapClosed(cv::Mat_<qreal> I, cv::Mat_<cv::Vec2w> pt);
 
+    // ShowMessage槽函数
+    void ShowMessage(QString title, QString content);
 
 private:
     Ui::MainWindow* ui;
+
+    mutable QMutex m_mutex;
 
     Readin* dataObject;
     Block* m_BK;
@@ -94,5 +95,3 @@ private:
 
 	window_floodmap* floodmapWidget;
 };
-
-#endif // MAINWINDOW_H

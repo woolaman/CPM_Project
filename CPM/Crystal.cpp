@@ -1,8 +1,6 @@
 ﻿#include "Crystal.h"
 #include "Parameters.h"
-
 #include <QDebug>
-
 
 Crystal::Crystal()
 {
@@ -10,8 +8,8 @@ Crystal::Crystal()
     m_slope = 0;
     m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
     m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
+    m_ADCHist->SetCutValue(ADC_cutValue);
 }
-
 
 Crystal::Crystal(int ID)
 {
@@ -19,8 +17,8 @@ Crystal::Crystal(int ID)
     m_slope = 0;
     m_ADCHist = new Histogram(ADC_min, ADC_max, ADC_nBins);
     m_recEHist = new Histogram(recE_min, recE_max, recE_nBins);
+    m_ADCHist->SetCutValue(ADC_cutValue);
 }
-
 
 Crystal::~Crystal()
 {
@@ -28,24 +26,20 @@ Crystal::~Crystal()
     delete m_recEHist;
 }
 
-
-int Crystal::GetID()
+int Crystal::GetID() const
 {
     return m_ID;
 }
-
 
 void Crystal::SetID(int ID)
 {
     m_ID = ID;
 }
 
-
 int Crystal::GetEntries()
 {
     return m_eList.size();
 }
-
 
 /**
  * @brief 计算能窗范围内的事例数。
@@ -53,17 +47,16 @@ int Crystal::GetEntries()
 int Crystal::GetEntries(qreal Emin, qreal Emax)
 {
     int counter = 0;
-    for (int i = 0; i < m_eList.size(); ++i)
+    for (auto var : m_eList)
     {
-        qreal recE = m_slope * m_eList[i];
-        if(Emin<recE && recE<Emax)
+        qreal recE = m_slope * var;
+        if (Emin < recE && recE < Emax)
         {
             counter++;
         }
     }
     return counter;
 }
-
 
 void Crystal::Fill(quint16 e)
 {
@@ -83,37 +76,51 @@ void Crystal::CalRecEHist()
     qreal peakLoc = h->GetPeak().x();
     m_slope = peakE/peakLoc;
 
-    for (int i = 0; i < m_eList.size(); ++i)
+    for (auto var : m_eList)
     {
-        m_recEHist->Fill(m_slope * m_eList[i]);
+        m_recEHist->Fill(m_slope * var);
     }
 }
 
+void Crystal::CalSlope()
+{
+    auto h = m_ADCHist->Clone();
+    h->SetCutValue(ADC_cutValue);
+    h->Smooth(10, 2);
+
+    qreal peakLoc = h->GetPeak().x();
+    m_slope = peakE / peakLoc;
+}
+
+Histogram* Crystal::GetADCHist()
+{
+    return m_ADCHist;
+}
+
+void Crystal::SetADCHist(Histogram* aHist)
+{
+    m_ADCHist = aHist;
+}
 
 Histogram* Crystal::GetRecEHist()
 {
     return m_recEHist;
 }
 
-
-Histogram* Crystal::GetADCHist()
+void Crystal::SetRecEHist(Histogram* aHist)
 {
-
-    return m_ADCHist;
+    m_recEHist = aHist;
 }
 
-
-qreal Crystal::GetSlope()
+qreal Crystal::GetSlope() const
 {
     return m_slope;
 }
-
 
 void Crystal::SetSlope(qreal x)
 {
     m_slope = x;
 }
-
 
 qreal Crystal::GetER()
 {
@@ -122,11 +129,9 @@ qreal Crystal::GetER()
     return h->GetResolution();
 }
 
-
 void Crystal::Clear()
 {
     m_eList.clear();
     m_ADCHist->Clear();
     m_recEHist->Clear();
 }
-

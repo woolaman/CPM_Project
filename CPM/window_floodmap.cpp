@@ -53,32 +53,41 @@ void window_floodmap::ShowPeaks()
 
 
 // 一些功能性函数
-cv::Mat window_floodmap::GetColorMap(cv::Mat_<qreal> I)
+cv::Mat window_floodmap::GetColorMap(cv::Mat_<qreal> I0)
 {
-	float c = 2;
-	cv::Mat_<quint8> scaledMap(I.size(), 0);
+	float c = 2.0f;
+	cv::Mat_<quint8> I1(I0.size(), 0);
 
 	qreal minVal, maxVal;
 	cv::Point minLoc, maxLoc;
-	cv::minMaxLoc(I, &minVal, &maxVal, &minLoc, &maxLoc);
+	cv::minMaxLoc(I0, &minVal, &maxVal, &minLoc, &maxLoc);
 
-	for (int i = 0; i < I.rows; ++i)
+	for (int i = 0; i < I0.rows; ++i)
 	{
-		for (int j = 0; j < I.cols; ++j)
+		for (int j = 0; j < I0.cols; ++j)
 		{
-			int value = qRound(1.0 * I(i, j) / maxVal * 255 * c);
+			int value = qRound(1.0 * I0(i, j) / maxVal * 255 * c);
 			if (value > 150)
 			{
 				value = 150;
 			}
-			scaledMap(i, j) = static_cast<quint8>(value);
+			I1(i, j) = static_cast<quint8>(value);
 		}
 	}
 
-	cv::Mat colorMap;
-	cv::applyColorMap(scaledMap, colorMap, cv::COLORMAP_HOT);
+	double clipLimit = 2.0;
+	cv::Size tileGridSize = cv::Size(8, 8);
 
-	return colorMap;
+	cv::Mat I2;
+	cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+	clahe->setClipLimit(clipLimit);
+	clahe->setTilesGridSize(tileGridSize);
+	clahe->apply(I1, I2);
+
+	cv::Mat I3;
+	cv::applyColorMap(I2, I3, cv::COLORMAP_HOT);
+
+	return I3;
 }
 
 void window_floodmap::mousePressEvent(QMouseEvent *event)

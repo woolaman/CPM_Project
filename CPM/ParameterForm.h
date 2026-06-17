@@ -1,6 +1,4 @@
-﻿#ifndef PARAMETERFORM_H
-#define PARAMETERFORM_H
-
+﻿#pragma once
 #include <QWidget>
 
 namespace Ui
@@ -21,14 +19,6 @@ private slots:
     void on_lineEdit_nBK_editingFinished();
     void on_lineEdit_nCrystal_editingFinished();
     void on_lineEdit_nPixel_editingFinished();
-
-    void on_lineEdit_enlarge_editingFinished();
-    void on_lineEdit_bias_editingFinished();
-
-    void on_lineEdit_xmin_editingFinished();
-    void on_lineEdit_xmax_editingFinished();
-    void on_lineEdit_ymin_editingFinished();
-    void on_lineEdit_ymax_editingFinished();
 
     void on_lineEdit_EW_width_editingFinished();
 
@@ -54,5 +44,3 @@ protected:
 private:
     Ui::ParameterForm* ui;
 };
-
-#endif // PARAMETERFORM_H

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>382</width>
-    <height>776</height>
+    <height>626</height>
    </rect>
   </property>
   <property name="font">
@@ -21,10 +21,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>20</x>
      <y>9</y>
-     <width>321</width>
-     <height>681</height>
+     <width>341</width>
+     <height>511</height>
     </rect>
    </property>
    <property name="font">
@@ -141,7 +141,7 @@
        </font>
       </property>
       <property name="text">
-       <string>28</string>
+       <string>26</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -181,198 +181,6 @@
      </widget>
     </item>
     <item row="4" column="0">
-     <widget class="QLabel" name="label_enlarge">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>图像放大因子</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QLineEdit" name="lineEdit_enlarge">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>1.06</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="label_bias">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>图像偏移大小</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1">
-     <widget class="QLineEdit" name="lineEdit_bias">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>58</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_xmin">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>x 最小值</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="1">
-     <widget class="QLineEdit" name="lineEdit_xmin">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="0">
-     <widget class="QLabel" name="label_xmax">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>x 最大值</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="1">
-     <widget class="QLineEdit" name="lineEdit_xmax">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>512</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="0">
-     <widget class="QLabel" name="label_ymin">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>y 最小值</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="1">
-     <widget class="QLineEdit" name="lineEdit_ymin">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="0">
-     <widget class="QLabel" name="label_ymax">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>y 最大值</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="1">
-     <widget class="QLineEdit" name="lineEdit_ymax">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>512</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="0">
      <widget class="QLabel" name="label_EW_width">
       <property name="font">
        <font>
@@ -388,7 +196,7 @@
       </property>
      </widget>
     </item>
-    <item row="10" column="1">
+    <item row="4" column="1">
      <widget class="QLineEdit" name="lineEdit_EW_width">
       <property name="font">
        <font>
@@ -404,7 +212,7 @@
       </property>
      </widget>
     </item>
-    <item row="11" column="0">
+    <item row="5" column="0">
      <widget class="QLabel" name="label_ADC_min">
       <property name="font">
        <font>
@@ -420,7 +228,7 @@
       </property>
      </widget>
     </item>
-    <item row="11" column="1">
+    <item row="5" column="1">
      <widget class="QLineEdit" name="lineEdit_ADC_min">
       <property name="font">
        <font>
@@ -436,7 +244,7 @@
       </property>
      </widget>
     </item>
-    <item row="12" column="0">
+    <item row="6" column="0">
      <widget class="QLabel" name="label_ADC_max">
       <property name="font">
        <font>
@@ -452,7 +260,7 @@
       </property>
      </widget>
     </item>
-    <item row="12" column="1">
+    <item row="6" column="1">
      <widget class="QLineEdit" name="lineEdit_ADC_max">
       <property name="font">
        <font>
@@ -461,14 +269,14 @@
        </font>
       </property>
       <property name="text">
-       <string>60000</string>
+       <string>20000</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="13" column="0">
+    <item row="7" column="0">
      <widget class="QLabel" name="label_ADC_nBins">
       <property name="font">
        <font>
@@ -484,7 +292,7 @@
       </property>
      </widget>
     </item>
-    <item row="13" column="1">
+    <item row="7" column="1">
      <widget class="QLineEdit" name="lineEdit_ADC_nBins">
       <property name="font">
        <font>
@@ -493,14 +301,14 @@
        </font>
       </property>
       <property name="text">
-       <string>600</string>
+       <string>400</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="14" column="0">
+    <item row="8" column="0">
      <widget class="QLabel" name="label_ADC_cutValue">
       <property name="font">
        <font>
@@ -516,7 +324,7 @@
       </property>
      </widget>
     </item>
-    <item row="14" column="1">
+    <item row="8" column="1">
      <widget class="QLineEdit" name="lineEdit_ADC_cutValue">
       <property name="font">
        <font>
@@ -525,14 +333,14 @@
        </font>
       </property>
       <property name="text">
-       <string>14000</string>
+       <string>8000</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="15" column="0">
+    <item row="9" column="0">
      <widget class="QLabel" name="label_peakE">
       <property name="font">
        <font>
@@ -548,7 +356,7 @@
       </property>
      </widget>
     </item>
-    <item row="15" column="1">
+    <item row="9" column="1">
      <widget class="QLineEdit" name="lineEdit_peakE">
       <property name="font">
        <font>
@@ -567,7 +375,7 @@
       </property>
      </widget>
     </item>
-    <item row="16" column="0">
+    <item row="10" column="0">
      <widget class="QLabel" name="label_recE_min">
       <property name="font">
        <font>
@@ -583,7 +391,7 @@
       </property>
      </widget>
     </item>
-    <item row="16" column="1">
+    <item row="10" column="1">
      <widget class="QLineEdit" name="lineEdit_recE_min">
       <property name="font">
        <font>
@@ -599,7 +407,7 @@
       </property>
      </widget>
     </item>
-    <item row="17" column="0">
+    <item row="11" column="0">
      <widget class="QLabel" name="label_recE_max">
       <property name="font">
        <font>
@@ -615,7 +423,7 @@
       </property>
      </widget>
     </item>
-    <item row="17" column="1">
+    <item row="11" column="1">
      <widget class="QLineEdit" name="lineEdit_recE_max">
       <property name="font">
        <font>
@@ -631,7 +439,7 @@
       </property>
      </widget>
     </item>
-    <item row="18" column="0">
+    <item row="12" column="0">
      <widget class="QLabel" name="label_recE_nBins">
       <property name="font">
        <font>
@@ -647,7 +455,7 @@
       </property>
      </widget>
     </item>
-    <item row="18" column="1">
+    <item row="12" column="1">
      <widget class="QLineEdit" name="lineEdit_recE_nBins">
       <property name="font">
        <font>
@@ -656,14 +464,14 @@
        </font>
       </property>
       <property name="text">
-       <string>800</string>
+       <string>400</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="19" column="0">
+    <item row="13" column="0">
      <widget class="QLabel" name="label_recE_cutValue">
       <property name="font">
        <font>
@@ -679,7 +487,7 @@
       </property>
      </widget>
     </item>
-    <item row="19" column="1">
+    <item row="13" column="1">
      <widget class="QLineEdit" name="lineEdit_recE_cutValue">
       <property name="font">
        <font>
@@ -688,14 +496,14 @@
        </font>
       </property>
       <property name="text">
-       <string>200</string>
+       <string>400</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="20" column="0">
+    <item row="14" column="0">
      <widget class="QLabel" name="label_segMethod">
       <property name="font">
        <font>
@@ -711,7 +519,7 @@
       </property>
      </widget>
     </item>
-    <item row="20" column="1">
+    <item row="14" column="1">
      <widget class="QLineEdit" name="lineEdit_segMethod">
       <property name="font">
        <font>
@@ -733,7 +541,7 @@
    <property name="geometry">
     <rect>
      <x>29</x>
-     <y>710</y>
+     <y>560</y>
      <width>321</width>
      <height>48</height>
     </rect>

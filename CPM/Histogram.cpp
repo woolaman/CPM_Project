@@ -18,13 +18,13 @@ Histogram::Histogram(qreal aXmin, qreal aXmax, int nBins)
     m_xmax = aXmax;
     m_nBins = nBins;
 
-    m_binWidth = (m_xmax-m_xmin)/m_nBins;
+    m_binWidth = (m_xmax - m_xmin) / m_nBins;
     m_binCenters = QVector<qreal>(m_nBins, 0);
     m_binContents = QVector<qreal>(m_nBins, 0);
 
     for (int i = 0; i < m_nBins; ++i)
     {
-        m_binCenters[i] = m_xmin + i*m_binWidth + m_binWidth/2;
+        m_binCenters[i] = m_xmin + i * m_binWidth + m_binWidth / 2;
     }
 
     m_cutValue = 0;
@@ -36,15 +36,15 @@ Histogram::~Histogram() { }
 
 void Histogram::Fill(qreal value)
 {
-    int idx = qFloor( (value-m_xmin)/m_binWidth );
+    int idx = qFloor((value - m_xmin) / m_binWidth);
 
-    if(0<=idx && idx<m_nBins)
+    if(0 <= idx && idx < m_nBins)
     {
         m_binContents[idx] += 1;
     }
 }
 
-qreal Histogram::GetBinWidth()
+qreal Histogram::GetBinWidth() const
 {
     return m_binWidth;
 }
@@ -80,6 +80,7 @@ void Histogram::Smooth(int windowSize)
     }
 }
 
+// 平滑多次
 void Histogram::Smooth(int windowSize, int times)
 {
     for (int i = 0; i < times; ++i)
@@ -103,13 +104,14 @@ void Histogram::Add(Histogram* aHist)
 
 QPointF Histogram::GetPeak()
 {
-    //int cutIdx = qRound((m_cutValue-m_xmin)/m_binWidth);
-    //int peakIdx = std::max_element( m_binContents.begin() + cutIdx,
-    //                               m_binContents.end() ) - m_binContents.begin();
-    //qreal x = m_binCenters[peakIdx];
-    //qreal y = m_binContents[peakIdx];
-    //return QPointF(x, y);
+    int cutIdx = qRound((m_cutValue - m_xmin) / m_binWidth);
+    int peakIdx = std::max_element( m_binContents.begin() + cutIdx,
+                                   m_binContents.end() ) - m_binContents.begin();
+    qreal x = m_binCenters[peakIdx];
+    qreal y = m_binContents[peakIdx];
+    return QPointF(x, y);
 
+    /******************************************
     // 插值 //method: INTER_CUBIC, INTER_LINEAR
     std::vector<qreal> vx;
     std::vector<qreal> vy;
@@ -127,13 +129,14 @@ QPointF Histogram::GetPeak()
     cv::resize(contents, resizedContents, cv::Size(targetLength, 1), 0, 0, cv::INTER_CUBIC);
     resizedContents.copyTo(vy);
 
-    int cutIdx = qRound((m_cutValue - m_xmin) / (1.0*m_binWidth / enlargeN));
+    int cutIdx = qRound((m_cutValue - m_xmin) / (1.0 * m_binWidth / enlargeN));
 
     int peakIdx = std::max_element(vy.begin() + cutIdx, vy.end()) - vy.begin();
     qreal peak_x = vx[peakIdx];
     qreal peak_y = vy[peakIdx];
 
     return QPointF(peak_x, peak_y);
+    ******************************************/
 }
 
 qreal Histogram::GetResolution()
@@ -167,16 +170,16 @@ qreal Histogram::GetResolution()
     qreal peak_x = vx[peakIdx];
     qreal peak_y = vy[peakIdx];
 
-    qreal halfMax = 0.5*peak_y;
+    qreal halfMax = 0.5 * peak_y;
     int leftIdx = peakIdx;
     int rightIdx = peakIdx;
 
-    while (leftIdx>0 && vy[leftIdx]>halfMax)
+    while (leftIdx > 0 && vy[leftIdx] > halfMax)
     {
         leftIdx--;
     }
 
-    while (rightIdx<vy.size()-1 && vy[rightIdx]>halfMax)
+    while (rightIdx < vy.size() - 1 && vy[rightIdx] > halfMax)
     {
         rightIdx++;
     }
@@ -194,12 +197,12 @@ qreal Histogram::GetResolution()
     return FWHM/peak_x;
 }
 
-qreal Histogram::GetLeftValue()
+qreal Histogram::GetLeftValue() const
 {
     return m_leftValue;
 }
 
-qreal Histogram::GetRightValue()
+qreal Histogram::GetRightValue() const
 {
     return m_rightValue;
 }
@@ -230,4 +233,9 @@ Histogram* Histogram::Clone()
 QVector<qreal> Histogram::GetBinContents()
 {
     return m_binContents;
+}
+
+qreal Histogram::GetMaxHeight()
+{  
+    return *std::max_element(m_binContents.begin(), m_binContents.end());
 }

@@ -148,8 +148,7 @@ void Block::Segment(SegmentMethod method)
 		Segment1();
 		break;
 	case SegmentMethod::FindMaximum:
-		//Segment2();
-		Segment3();
+		Segment2();
 		break;
 	default:
 		qDebug() << "Segment Method parameter must be 1 or 2.";
@@ -292,7 +291,7 @@ void Block::Segment1()
 				}
 			}
 
-			c = c / (m_num2*m_num2); // 初始位置
+			c = c / (m_num2 * m_num2); // 初始位置
 			cv::Point2f pre_c(-1, -1);
 
 			while (cv::norm(pre_c - c) > 1)  // 迭代移动重心
@@ -321,7 +320,7 @@ void Block::Segment1()
 							{
 								if (cv::norm(p - cv::Point2f(m, n)) <= r)
 								{
-									u += I0(n, m)*cv::Point2f(m, n);
+									u += I0(n, m) * cv::Point2f(m, n);
 									d += I0(n, m);
 								}
 							}
@@ -373,8 +372,8 @@ void Block::Segment1()
 							//qreal k = cv::norm(x-cv::Point2f(m, n))/pow((2*r+1), 2);
 							//qreal g = (1/sqrt(2*M_PI))*exp(-0.5*k);
 							qreal g = 1;
-							u += I0(n, m)*g*cv::Point2f(m, n);
-							d += I0(n, m)*g;
+							u += I0(n, m) * g * cv::Point2f(m, n);
+							d += I0(n, m) * g;
 						}
 					}
 				}
@@ -388,78 +387,8 @@ void Block::Segment1()
 	//*****************************************************/
 }
 
-/**
- * @details 该方法直接调用opencv库函数寻找图像中的极大值点，
- * 然后将该点附近像素置为0，继续寻找下一个极大值点，直至找到所有峰位。
- * 找到所有峰位后，他们的顺序是混乱的，需要对他们进行排序。排序方法为先按行排序，然后按列排序。
- * 具体为将所有的点按 y 值排序，每 nCrystal 个点为一组，第0组为第0行，第1组为第1行，...
- * 每组内的点再按 x 值 排序，对应所有列。
- */
-void Block::Segment2() // maximum method to find peaks
-{
-	// 使用 OpenCV 的平滑函数对数据进行平滑处理
-	cv::Mat_<qreal> I1;
-	cv::blur(m_I0, I1, cv::Size(5, 5));
 
-	//cv::Mat_<qreal> I2;
-	//cv::GaussianBlur(I1, I2, cv::Size(3, 3), 1, 1);
-	//I1 = I2;
-
-	QVector<cv::Point> peaks;
-	int nPeaks = (nCrystal - 2) * (nCrystal - 2);
-	for (int i = 0; i < nPeaks; ++i)
-	{
-		qreal minVal, maxVal;
-		cv::Point minLoc, maxLoc;
-		cv::minMaxLoc(I1, &minVal, &maxVal, &minLoc, &maxLoc);
-
-		peaks.append(maxLoc);
-
-		// 将maxLoc附近的元素置为0
-		int m0 = maxLoc.x;
-		int n0 = maxLoc.y;
-		int r = 6;
-
-		for (int n = n0 - r; n <= n0 + r; ++n)
-		{
-			for (int m = m0 - r; m <= m0 + r; ++m)
-			{
-				if (cv::norm(maxLoc - cv::Point(m, n)) <= r)
-				{
-					I1(n, m) = 0;
-				}
-			}
-		}
-	}
-
-	// sort peaks
-	for (int iRow = 0; iRow < nCrystal - 2; ++iRow)
-	{
-		// 选出 y 值较小的 m_nCrystal 个点作为一行， y值升序排列
-		std::sort(peaks.begin(), peaks.end(),
-			[](const cv::Point& p1, const cv::Point& p2) {return p1.y < p2.y; });
-
-		QVector<cv::Point> rowPeaks;
-		for (size_t i = 0; i < nCrystal - 2; i++)
-		{
-			rowPeaks.append(peaks[i]);
-		}
-
-		// 将他们按 x 值升序排列
-		std::sort(rowPeaks.begin(), rowPeaks.end(),
-			[](const cv::Point& p1, const cv::Point& p2) {return p1.x < p2.x; });
-
-		for (int iCol = 0; iCol < nCrystal - 2; ++iCol)
-		{
-			peaks.pop_front();
-			m_pt(iRow, iCol)[0] = rowPeaks[iCol].x;
-			m_pt(iRow, iCol)[1] = rowPeaks[iCol].y;
-		}
-	}
-}
-
-
-void Block::Segment3()
+void Block::Segment2()
 {
 	cv::Mat_<qreal> I0 = m_I0.clone();
 
@@ -471,47 +400,6 @@ void Block::Segment3()
 	I0.setTo(1.e-4, I0 < 2);
 
 	m_I0 = I0;
-
-	/******************************************************
-	qDebug() << "SVD start.";
-	gsl_matrix* A = gsl_matrix_alloc(nPixel, nPixel);
-	gsl_matrix* V = gsl_matrix_alloc(nPixel, nPixel);
-	gsl_vector* S = gsl_vector_alloc(nPixel);
-	gsl_vector* workspace = gsl_vector_alloc(nPixel);
-
-	for (int i = 0; i < nPixel; ++i)
-	{
-		for (int j = 0; j < nPixel; ++j)
-		{
-			gsl_matrix_set(A, i, j, I0(i, j));
-		}
-	}
-
-	gsl_linalg_SV_decomp(A, V, S, workspace);
-
-	cv::Mat_<qreal> UMat = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
-	cv::Mat_<qreal> SMat = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
-	cv::Mat_<qreal> VMat = cv::Mat::zeros(nPixel, nPixel, CV_64FC1);
-
-	for (int i = 0; i < nPixel; ++i)
-	{
-		for (int j = 0; j < nPixel; ++j)
-		{
-			UMat(i, j) = gsl_matrix_get(A, i, j);
-			VMat(i, j) = gsl_matrix_get(V, i, j);
-		}
-	}
-
-	SMat(0, 0) = gsl_vector_get(S, 0);
-
-	cv::Mat I1 = UMat * SMat * VMat.t();
-
-	gsl_matrix_free(A);
-	gsl_matrix_free(V);
-	gsl_vector_free(S);
-	gsl_vector_free(workspace);
-	qDebug() << "SVD done. ";
-	******************************************/
 
 	cv::Mat col_sum, row_sum;
 	cv::reduce(I0, col_sum, 0, cv::REDUCE_SUM);
@@ -551,7 +439,7 @@ void Block::Segment3()
 		auto mid = colSum.at<qreal>(i);
 		auto left = colSum.at<qreal>(i - 1);
 		auto right = colSum.at<qreal>(i + 1);
-		if (mid > left && mid > right && mid>10)
+		if (mid > left && mid > right && mid > 10)
 		{
 			x_locs.append(i);
 		}
@@ -563,7 +451,7 @@ void Block::Segment3()
 		auto mid = rowSum.at<qreal>(i);
 		auto left = rowSum.at<qreal>(i - 1);
 		auto right = rowSum.at<qreal>(i + 1);
-		if (mid > left && mid > right)
+		if (mid > left && mid > right && mid > 10)
 		{
 			y_locs.append(i);
 		}
@@ -625,7 +513,7 @@ void Block::Segment3()
 	}
 	qDebug() << QString::fromLocal8Bit("所有晶体初始位置设置完毕。");
 
-	// 第一次 按行排序
+	// 按行排序
 	for (size_t iRow = 0; iRow < nCrystal - 2; iRow++)
 	{
 		auto y0 = m_pt(iRow, 0)[1];
@@ -654,9 +542,7 @@ void Block::Segment3()
 		}
 	}
 
-	//return;
-
-	// 第一次按列排序
+	// 按列排序
 	for (size_t iCol = 0; iCol < nCrystal - 2; iCol++)
 	{
 		cv::Mat_<qreal> LineMat(1, nCrystal - 2); // line
@@ -733,7 +619,7 @@ void Block::CalSegResult()
 	// 0, 边缘晶体不强行分割成2根晶体;
 	// 1, random method; 
 	// 2, line-cut method
-	m_edgeFlag = 2;
+	// m_edgeFlag = 2;
 	if (0 == m_edgeFlag)
 	{
 		for (int i = 0; i < nPixel; ++i)
@@ -959,6 +845,9 @@ void Block::CalSegResult()
 		m_segr1 = m_segr0;
 	}
 
+	m_segr0 = seg1 * nCrystal + seg2;
+	m_segr1 = m_segr0;
+
 	m_edge = cv::Mat::zeros(nPixel, nPixel, CV_8UC1);
 	m_segMap = m_I0.clone();
 
@@ -1029,18 +918,15 @@ void Block::CalRecEHist()
  */
 void Block::CalSegFOM()
 {
-	int nPeaks = (nCrystal - 4) * (nCrystal - 4);
 	// step 5, 求分割质量参数
+
 	// calculate peaks mean-height
-
-	//cv::Mat I1;
-	//cv::blur(m_I0, I1, cv::Size(3, 3));
-
+	int nPeaks = nCrystal * nCrystal;
 	qreal peak_total_evts = 0;
 	qreal totalFWHM = 0;
-	for (int i = 1; i < nCrystal - 3; ++i) // 0--25, 1--24
+	for (int i = 0; i < nCrystal; ++i)
 	{
-		for (int j = 1; j < nCrystal - 3; ++j)
+		for (int j = 0; j < nCrystal; ++j)
 		{
 			int x = m_pt(i, j)[0];
 			int y = m_pt(i, j)[1];
@@ -1068,73 +954,18 @@ void Block::CalSegFOM()
 	{
 		for (int j = 0; j < nPixel; ++j)
 		{
-			if (ymin < i && i < ymax && xmin < j && j < xmax)
+			if (1 == m_edge(i, j))
 			{
-				int aN = static_cast<int>(m_I0(i, j));
-				if (1 == m_edge(i, j))
-				{
-					edgeN++;
-					edgeEvts += aN;
-				}
+				edgeN++;
+				edgeEvts += static_cast<int>(m_I0(i, j));
 			}
+
 		}
 	}
 
-	cv::Mat_<qreal> uLineMat(1, nCrystal - 2); // up line
-	cv::Mat_<qreal> bLineMat(1, nCrystal - 2); // bottom line
-	cv::Mat_<qreal> lLineMat(1, nCrystal - 2); // left line
-	cv::Mat_<qreal> rLineMat(1, nCrystal - 2); // right line
-
-	for (int i = 0; i < nCrystal - 2; ++i)
-	{
-		uLineMat(0, i) = m_pt(1, i)[1]; // row index, y
-		bLineMat(0, i) = m_pt(nCrystal - 4, i)[1]; // row index, y
-		lLineMat(0, i) = m_pt(i, 1)[0]; // col index, x
-		rLineMat(0, i) = m_pt(i, nCrystal - 4)[0]; // col index, x
-	}
-
-	cv::Mat_<qreal> resizedUMat;
-	cv::Mat_<qreal> resizedBMat;
-	cv::Mat_<qreal> resizedLMat;
-	cv::Mat_<qreal> resizedRMat;
-
-	cv::resize(uLineMat, resizedUMat, cv::Size(nPixel, 1), 0, 0, cv::INTER_LINEAR);
-	cv::resize(bLineMat, resizedBMat, cv::Size(nPixel, 1), 0, 0, cv::INTER_LINEAR);
-	cv::resize(lLineMat, resizedLMat, cv::Size(nPixel, 1), 0, 0, cv::INTER_LINEAR);
-	cv::resize(rLineMat, resizedRMat, cv::Size(nPixel, 1), 0, 0, cv::INTER_LINEAR);
-
-	for (int i = 0; i < nPixel; ++i)
-	{
-		for (int j = 0; j < nPixel; ++j)
-		{
-			cv::Mat_<qreal> dis(nCrystal - 2, nCrystal - 2);
-
-			for (int iRow = 0; iRow < nCrystal - 2; ++iRow)
-			{
-				for (int iCol = 0; iCol < nCrystal - 2; ++iCol)
-				{
-					cv::Point2f p(m_pt(iRow, iCol)[0], m_pt(iRow, iCol)[1]);
-					dis(iRow, iCol) = cv::norm(cv::Point2f(j, i) - p);
-				}
-			}
-
-			cv::Point min_loc;
-			cv::minMaxLoc(dis, NULL, NULL, &min_loc, NULL);
-
-			int rowID = min_loc.y + 1;
-			int colID = min_loc.x + 1;
-
-			int uBorder = qRound(resizedUMat(0, j));
-			int bBorder = qRound(resizedBMat(0, j));
-			int lBorder = qRound(resizedLMat(0, i));
-			int rBorder = qRound(resizedRMat(0, i));
-
-			qreal valley_mean_height = 1.0*edgeEvts / edgeN;
-
-			m_PVR = peak_mean_height / valley_mean_height;
-			m_FWHM = totalFWHM / nPeaks;
-		}
-	}
+	qreal valley_mean_height = 1.0 * edgeEvts / edgeN;
+	m_PVR = peak_mean_height / valley_mean_height;
+	m_FWHM = totalFWHM / nPeaks;
 }
 
 void Block::GenPositionLUT()
@@ -1142,7 +973,10 @@ void Block::GenPositionLUT()
 	//根据分割结果，生成位置查找表
 	int CMID = m_ID / nBK;
 	int BKID = m_ID % nBK;
-	QString fName = currentPath + "Data/PLUT" + QString::number(CMID) + QString::number(BKID);
+	QString CMIDStr = QString::number(CMID).rightJustified(2, '0');
+	QString BKIDStr = QString::number(BKID).rightJustified(2, '0');
+
+	QString fName = currentPath + "Data/PLUT_" + CMIDStr + "_" + BKIDStr;
 	QFile file(fName);
 	if (!file.open(QIODevice::WriteOnly))
 	{
@@ -1173,9 +1007,11 @@ void Block::GenEnergyLUT()
 {
 	int CMID = m_ID / nBK;
 	int BKID = m_ID % nBK;
+	QString CMIDStr = QString::number(CMID).rightJustified(2, '0');
+	QString BKIDStr = QString::number(BKID).rightJustified(2, '0');
 
 	// 保存能量转换系数
-	QString fName = currentPath + "Data/ELUT" + QString::number(CMID) + QString::number(BKID);
+	QString fName = currentPath + "Data/ELUT_" + CMIDStr + "_" + BKIDStr;
 	QFile file1(fName);
 	if (!file1.open(QIODevice::WriteOnly))
 	{
@@ -1204,7 +1040,7 @@ void Block::GenEnergyLUT()
 	qDebug() << QString::fromLocal8Bit("能量查找表已生成: ") + fName;
 
 	// 保存能谱
-	fName = currentPath + "Data/EHist" + QString::number(CMID) + QString::number(BKID);
+	fName = currentPath + "Data/EHist_" + CMIDStr + "_" + BKIDStr;
 	QFile file2(fName);
 	if (!file2.open(QIODevice::WriteOnly))
 	{
@@ -1226,6 +1062,43 @@ void Block::GenEnergyLUT()
 
 	file2.close();
 	qDebug() << QString::fromLocal8Bit("能谱已保存: ") + fName;
+}
+
+void Block::ReGenELUT()
+{
+	int CMID = m_ID / nBK;
+	int BKID = m_ID % nBK;
+	QString CMIDStr = QString::number(CMID).rightJustified(2, '0');
+	QString BKIDStr = QString::number(BKID).rightJustified(2, '0');
+
+	// 保存能量转换系数
+	QString fName = currentPath + "Data/ELUT_" + CMIDStr + "_" + BKIDStr;
+	QFile file(fName);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		qDebug() << QString::fromLocal8Bit("打开文件失败，无法生成能量查找表。");
+		return;
+	}
+
+	QDataStream outStream(&file);
+	for (int i = 0; i < 1024; ++i)
+	{
+		if (i < crystalNum)
+		{
+			qreal slope = m_crystals[i]->GetSlope();
+			slope *= pow(2, 16);
+			quint16 uSlope = static_cast<quint16>(slope);
+			outStream.writeRawData(reinterpret_cast<char*>(&uSlope), sizeof(quint16));
+		}
+		else
+		{
+			quint16 temp = 0;
+			outStream.writeRawData(reinterpret_cast<char*>(&temp), sizeof(quint16));
+		}
+	}
+
+	file.close();
+	qDebug() << QString::fromLocal8Bit("能量查找表已生成: ") + fName;
 }
 
 void Block::GenUniformityLUT()
@@ -1326,12 +1199,12 @@ qreal Block::GetER()
 	return h->GetResolution();
 }
 
-qreal Block::GetPVR()
+qreal Block::GetPVR() const
 {
 	return m_PVR;
 }
 
-qreal Block::GetFWHM()
+qreal Block::GetFWHM() const
 {
 	return m_FWHM;
 }
@@ -1455,11 +1328,11 @@ QVector<int> Block::FindPeaks(QVector<qreal> v, int nPeaks)
 	QVector<int> adjustedValues = peaks; // 保留原始序列
 	int n = peaks.size();
 
-	for (int iter = 0; iter < 1; ++iter) 
+	for (int iter = 0; iter < 1; ++iter)
 	{
 		// 计算相邻差值
 		QVector<double> diff(n - 1);
-		for (int i = 0; i < n - 1; ++i) 
+		for (int i = 0; i < n - 1; ++i)
 		{
 			diff[i] = adjustedValues[i + 1] - adjustedValues[i];
 		}
@@ -1468,13 +1341,13 @@ QVector<int> Block::FindPeaks(QVector<qreal> v, int nPeaks)
 		double meanDiff = std::accumulate(diff.begin(), diff.end(), 0.0) / diff.size();
 
 		// 调整差值
-		for (int i = 0; i < diff.size(); ++i) 
+		for (int i = 0; i < diff.size(); ++i)
 		{
 			diff[i] += 0.999 * (meanDiff - diff[i]);
 		}
 
 		// 根据调整后的差值重建序列，保持首尾元素不变
-		for (int i = 1; i < n; ++i) 
+		for (int i = 1; i < n; ++i)
 		{
 			adjustedValues[i] = round(adjustedValues[i - 1] + diff[i - 1]);
 		}
@@ -1590,7 +1463,7 @@ QVector<qreal> Block::GetUStatistics()
 // 线性插值函数
 double Block::interp1Linear(const std::vector<double>& x, const std::vector<double>& y, double xq)
 {
-	if (x.size() != y.size() || x.empty()) 
+	if (x.size() != y.size() || x.empty())
 	{
 		throw std::invalid_argument("Input vectors x and y must be of the same size and non-empty.");
 	}
@@ -1616,8 +1489,8 @@ double Block::interp1Linear(const std::vector<double>& x, const std::vector<doub
 }
 
 std::vector<double> Block::interp1(const std::vector<double>& x,
-	const std::vector<double>& y, 
-	const std::vector<double>& xq) 
+	const std::vector<double>& y,
+	const std::vector<double>& xq)
 {
 	std::vector<double> yq;
 	for (double xqi : xq)

@@ -9,13 +9,13 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F618E2EA-316F-40CE-B9A1-357E4CA0B364}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
-    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
     <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
@@ -66,6 +66,7 @@
     <ClCompile Include="ParameterForm.cpp" />
     <ClCompile Include="Readin.cpp" />
     <ClCompile Include="window_floodmap.cpp" />
+    <None Include="cpp.hint" />
     <QtRcc Include="CPM.qrc" />
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Crystal.cpp" />

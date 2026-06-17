@@ -2,7 +2,7 @@
 
 nCM = 20
 nBK = 5
-nCrystal = 13
+nCrystal = 26
 nPixel = 512
 
 enlarge = 1.00
@@ -15,19 +15,19 @@ ymax = 512
 
 EW_width = 0.25
 
-segmentMethod = 2
+segmentMethod = 1
 
 peakE = 511.00
 
 ADC_min = 0
-ADC_max = 10000
-ADC_nBins = 500
-ADC_cutValue = 50
+ADC_max = 20000
+ADC_nBins = 400
+ADC_cutValue = 8000
 
 recE_min = 0
 recE_max = 1600
 recE_nBins = 400
-recE_cutValue = 200
+recE_cutValue = 400
 
 Position LUT = LUT_Position.bin
 Energy LUT = LUT_Energy.bin

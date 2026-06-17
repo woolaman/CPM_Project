@@ -2,10 +2,7 @@
  * @class Crystal
  * Crystal class.
  */
-
-#ifndef CRYSTAL_H
-#define CRYSTAL_H
-
+#pragma once
 #include <QVector>
 #include "Histogram.h"
 
@@ -16,7 +13,7 @@ public:
     Crystal(int ID);
     ~Crystal();
 
-    int GetID();
+    int GetID() const;
     void SetID(int ID);
 
     int GetEntries();
@@ -25,10 +22,15 @@ public:
     void Fill(quint16 e);
     void CalRecEHist();
 
+    void CalSlope();
+
     Histogram* GetADCHist();
     Histogram* GetRecEHist();
 
-    qreal GetSlope();
+    void SetADCHist(Histogram* aHist);
+    void SetRecEHist(Histogram* aHist);
+
+    qreal GetSlope() const;
     void SetSlope(qreal x);
 
     qreal GetER();
@@ -42,5 +44,3 @@ private:
     Histogram* m_ADCHist;
     Histogram* m_recEHist;
 };
-
-#endif // CRYSTAL_H
