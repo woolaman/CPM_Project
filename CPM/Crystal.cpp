@@ -74,7 +74,7 @@ void Crystal::CalRecEHist()
     h->Smooth(10, 2);
 
     qreal peakLoc = h->GetPeak().x();
-    m_slope = peakE/peakLoc;
+    m_slope = peakE / peakLoc;
 
     for (auto var : m_eList)
     {

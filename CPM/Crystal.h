@@ -1,8 +1,4 @@
-﻿/**
- * @class Crystal
- * Crystal class.
- */
-#pragma once
+﻿#pragma once
 #include <QVector>
 #include "Histogram.h"
 

@@ -1,36 +1,28 @@
-﻿#ifndef EHISTLABEL_H
-#define EHISTLABEL_H
-
+﻿#pragma once
 #include <QLabel>
 #include <QObject>
 #include <QPoint>
 #include <QMouseEvent>
 
-
 class LabelHistogram : public QLabel
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    LabelHistogram(QWidget *parent = nullptr);
-    ~LabelHistogram();
+	LabelHistogram(QWidget* parent = nullptr);
+	~LabelHistogram();
 
-    QPoint GetLeftPos();
-    QPoint GetRightPos();
-
+	QPoint GetLeftPos();
+	QPoint GetRightPos();
 
 signals:
-    void mouseLeftClicked();
-    void mouseRightClicked();
-
+	void mouseLeftClicked();
+	void mouseRightClicked();
 
 protected:
-    void mousePressEvent(QMouseEvent *event) override;
-
+	void mousePressEvent(QMouseEvent* event) override;
 
 private:
-    QPoint m_leftPos;
-    QPoint m_rightPos;
+	QPoint m_leftPos;
+	QPoint m_rightPos;
 };
-
-#endif // EHISTLABEL_H

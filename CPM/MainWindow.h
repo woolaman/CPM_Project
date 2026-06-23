@@ -5,10 +5,8 @@
 #include <QChartView>
 #include <QValueAxis>
 #include <QVector>
-
 #include "opencv2/core/mat.hpp"
 #include "opencv2/highgui/highgui.hpp"
-
 #include "Readin.h"
 #include "Block.h"
 #include "window_floodmap.h"

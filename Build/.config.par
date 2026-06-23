@@ -5,17 +5,9 @@ nBK = 5
 nCrystal = 26
 nPixel = 512
 
-enlarge = 1.00
-bias = 0
-
-xmin = 0
-xmax = 512
-ymin = 0
-ymax = 512
-
 EW_width = 0.25
 
-segmentMethod = 1
+segmentMethod = 2
 
 peakE = 511.00
 
@@ -28,8 +20,4 @@ recE_min = 0
 recE_max = 1600
 recE_nBins = 400
 recE_cutValue = 400
-
-Position LUT = LUT_Position.bin
-Energy LUT = LUT_Energy.bin
-Uniformity LUT = LUT_Uniformity.bin
 

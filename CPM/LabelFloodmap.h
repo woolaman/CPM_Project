@@ -1,6 +1,4 @@
-﻿#ifndef LABELFLOODMAP_H
-#define LABELFLOODMAP_H
-
+﻿#pragma once
 #include <QApplication>
 #include <QLabel>
 #include <QObject>
@@ -8,31 +6,24 @@
 #include <QMouseEvent>
 #include <QToolTip>
 
-
 class LabelFloodmap : public QLabel
 {
-    Q_OBJECT
-
+	Q_OBJECT
 
 public:
-    LabelFloodmap(QWidget *parent = nullptr);
-    ~LabelFloodmap();
+	LabelFloodmap(QWidget* parent = nullptr);
+	~LabelFloodmap();
 
-    QPoint GetPos();
-
+	QPoint GetPos() const;
 
 signals:
-    void mouseLeftClicked();
-    void mouseRightClicked();
-
+	void mouseLeftClicked();
+	void mouseRightClicked();
 
 protected:
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
-    QPoint m_pos;
+	QPoint m_pos;
 };
-
-#endif // LABELFLOODMAP_H

@@ -1,10 +1,4 @@
-﻿/**
- * @class Histogram class
- *
- * 基础工具类，直方图类。
- *
-*/
-#pragma once
+﻿#pragma once
 #include <QPointF>
 #include <QVector>
 

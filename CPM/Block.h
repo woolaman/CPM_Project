@@ -1,10 +1,4 @@
-﻿/**
- * @class Block
- *
- * block class
- *
-*/
-#pragma once
+﻿#pragma once
 #include "Crystal.h"
 #include "Parameters.h"
 #include <opencv2/core.hpp>
@@ -16,7 +10,7 @@ public:
 	Block(int ID);
 	~Block();
 
-	int GetID();
+	int GetID() const;
 	void SetID(int ID);
 
 	void Fill(quint16 x, quint16 y, quint16 e);
@@ -45,7 +39,6 @@ public:
 
 	cv::Mat_<qreal> GetMap();
 	cv::Mat_<cv::Vec2w> GetPeakTable();
-	cv::Mat_<quint16> GetSegResult(int n);
 	cv::Mat_<qreal> GetSegMap();
 
 	qreal GetER();
@@ -56,8 +49,8 @@ public:
 
 	void Clear();
 
-	cv::Mat_<qreal> GetUniformity();
-	QVector<qreal> GetUStatistics();
+	cv::Mat_<qreal> GetUniformity() const;
+	QVector<qreal> GetUStatistics() const;
 
 	void SetMap(cv::Mat_<qreal> I) { m_I0 = I; }
 	void SetPeakTable(cv::Mat_<cv::Vec2w> pt) { m_pt = pt; }
@@ -77,13 +70,8 @@ private: // private members
 	cv::Mat_<qreal> m_I0;
 	cv::Mat_<cv::Vec2w> m_pt;
 
-	cv::Mat_<quint16> seg1;
-	cv::Mat_<quint16> seg2;
-	cv::Mat_<quint16> seg1_plus;
-	cv::Mat_<quint16> seg2_plus;
-
-	cv::Mat_<quint16> m_segr0;
-	cv::Mat_<quint16> m_segr1;
+	cv::Mat_<quint16> m_segr; // 26*26, 每个像素点对应一个晶体ID
+	cv::Mat_<quint16> m_segr_plus; // 28*28, 每个像素点对应一个晶体ID
 
 	cv::Mat_<quint8> m_edge;
 	cv::Mat_<qreal> m_segMap;
@@ -106,7 +94,6 @@ private: // private members
 	int m_edgeFlag = 1;
 
 private: // private functions
-	void CalGroupPar(int N);
 	QVector<int> FindPeaks(QVector<qreal> v, int nPeaks);
 
 	// 线性插值函数

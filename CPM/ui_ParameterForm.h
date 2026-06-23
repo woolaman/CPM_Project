@@ -60,13 +60,13 @@ public:
     {
         if (ParameterForm->objectName().isEmpty())
             ParameterForm->setObjectName(QString::fromUtf8("ParameterForm"));
-        ParameterForm->resize(382, 626);
+        ParameterForm->resize(313, 626);
         QFont font;
         font.setPointSize(10);
         ParameterForm->setFont(font);
         layoutWidget = new QWidget(ParameterForm);
         layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(20, 9, 341, 511));
+        layoutWidget->setGeometry(QRect(20, 9, 271, 511));
         QFont font1;
         font1.setFamily(QString::fromUtf8("\345\276\256\350\275\257\351\233\205\351\273\221"));
         font1.setPointSize(10);
@@ -291,7 +291,7 @@ public:
 
         pushButton_start = new QPushButton(ParameterForm);
         pushButton_start->setObjectName(QString::fromUtf8("pushButton_start"));
-        pushButton_start->setGeometry(QRect(29, 560, 321, 48));
+        pushButton_start->setGeometry(QRect(20, 560, 271, 48));
         pushButton_start->setFont(font1);
 
         retranslateUi(ParameterForm);

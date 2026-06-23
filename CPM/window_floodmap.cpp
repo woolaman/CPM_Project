@@ -32,10 +32,10 @@ void window_floodmap::ShowPeaks()
 	QPainter painter(&pixmap);
 	painter.setPen(QPen(Qt::green, 1));
 
-	for (int i = 0; i < nCrystal - 2; ++i)
+	for (int i = 0; i < nCrystal; ++i)
 	{
 		QVector<QPoint> points;
-		for (int j = 0; j < nCrystal - 2; ++j)
+		for (int j = 0; j < nCrystal; ++j)
 		{
 			int x = m_pt(j, i)[0];
 			int y = m_pt(j, i)[1];
@@ -50,7 +50,6 @@ void window_floodmap::ShowPeaks()
 
 	ui->label_floodmap->setPixmap(pixmap);
 }
-
 
 // 一些功能性函数
 cv::Mat window_floodmap::GetColorMap(cv::Mat_<qreal> I0)
@@ -67,9 +66,9 @@ cv::Mat window_floodmap::GetColorMap(cv::Mat_<qreal> I0)
 		for (int j = 0; j < I0.cols; ++j)
 		{
 			int value = qRound(1.0 * I0(i, j) / maxVal * 255 * c);
-			if (value > 150)
+			if (value > 200)
 			{
-				value = 150;
+				value = 200;
 			}
 			I1(i, j) = static_cast<quint8>(value);
 		}
@@ -99,10 +98,10 @@ void window_floodmap::mousePressEvent(QMouseEvent *event)
 		QPoint pos = event->pos();
 		qDebug() << "Mouse clicked at: " << pos;
 
-		cv::Mat_<qreal> dis(nCrystal - 2, nCrystal - 2, 0.0);
-		for (int i = 0; i < nCrystal - 2; ++i)
+		cv::Mat_<qreal> dis(nCrystal, nCrystal, 0.0);
+		for (int i = 0; i < nCrystal; ++i)
 		{
-			for (int j = 0; j < nCrystal - 2; ++j)
+			for (int j = 0; j < nCrystal; ++j)
 			{
 				cv::Point2f p1(m_pt(i, j)[0], m_pt(i, j)[1]);
 				cv::Point2f p2(pos.x(), pos.y());
@@ -122,9 +121,9 @@ void window_floodmap::mousePressEvent(QMouseEvent *event)
 	// 检查是否是鼠标右键
 	if (event->button() == Qt::RightButton)
 	{
-		for (int iRow = 0; iRow < nCrystal - 2; ++iRow)
+		for (int iRow = 0; iRow < nCrystal; ++iRow)
 		{
-			for (int iCol = 0; iCol < nCrystal - 2; ++iCol)
+			for (int iCol = 0; iCol < nCrystal; ++iCol)
 			{
 				cv::Point2f x(m_pt(iRow, iCol)[0], m_pt(iRow, iCol)[1]);
 				cv::Point2f pre_x(0, 0);

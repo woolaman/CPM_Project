@@ -118,28 +118,29 @@ int main(int argc, char* argv[])
 	QApplication app(argc, argv);
 
 	// 获取当前程序目录
-	QDir dir(QCoreApplication::applicationDirPath());
-	currentPath = dir.absolutePath() + "/";
+	QDir appDir(QCoreApplication::applicationDirPath());
+	currentPath = appDir.absolutePath() + "/";
 	qInfo() << "Current path = " << currentPath;
 
-	//判断当前目录中是否存在文件夹"Data/"，如果不存在则创建一个
-	QString directoryName = "Data";
-
-	// 拼接目标文件夹的路径
-	QString targetDirectoryPath = dir.absoluteFilePath(directoryName);
-
-	// 检查文件夹是否存在，如果不存在则创建文件夹
-	if (!dir.exists(directoryName))
+	// 确保 Data 目录存在
+	QString dataDirName = "Data";
+	if (!appDir.exists(dataDirName))
 	{
-		if (dir.mkdir(directoryName))
+		if (!appDir.mkdir(dataDirName))
 		{
-			qDebug() << "Data directory created successfully: " <<
-				targetDirectoryPath;
+			qCritical() << "Failed to create Data directory";
+			return 1;
 		}
-		else
+	}
+
+	// 确保 "查找表" 目录存在
+	QString LUTDirName = QStringLiteral("查找表");
+	if (!appDir.exists(LUTDirName))
+	{
+		if (!appDir.mkdir(LUTDirName))
 		{
-			qCritical() << "Failed to create data directory: " <<
-				targetDirectoryPath;
+			qCritical() << "Failed to create Data directory";
+			return 1;
 		}
 	}
 
@@ -186,7 +187,7 @@ int main(int argc, char* argv[])
 		nBK = pars["nBK"].toInt();
 		nPixel = pars["nPixel"].toInt();
 		nCrystal = pars["nCrystal"].toInt();
-		crystalNum = nCrystal * nCrystal;
+		crystalNum = (nCrystal + 2) * (nCrystal + 2);
 
 		EW_width = pars["EW_width"].toDouble();
 
@@ -226,7 +227,7 @@ int main(int argc, char* argv[])
 		nBK = 5;
 		nPixel = 512;
 		nCrystal = 26;
-		crystalNum = nCrystal * nCrystal;
+		crystalNum = (nCrystal + 2) * (nCrystal + 2);
 
 		EW_width = 0.25;
 

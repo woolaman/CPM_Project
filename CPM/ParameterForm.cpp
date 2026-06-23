@@ -121,7 +121,7 @@ void ParameterForm::on_lineEdit_segMethod_editingFinished()
 
 void ParameterForm::on_pushButton_start_clicked()
 {
-	crystalNum = nCrystal * nCrystal;
+	crystalNum = (nCrystal + 2) * (nCrystal + 2);
 	ADC_binWidth = 1.0 * (ADC_max - ADC_min) / ADC_nBins;
 	recE_binWidth = 1.0 * (recE_max - recE_min) / recE_nBins;
 
